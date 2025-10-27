@@ -30,7 +30,7 @@ const ADMIN_EMAIL = "fns.placementcell@srcc.du.ac.in";
 // WARNING: Client-side whitelisting can be easily bypassed by modifying the JavaScript in the browser.
 // Use Firestore Security Rules (e.g., `allow read, write: if request.auth.token.email in ['admin@example.com', 'user@example.com'];`)
 // for reliable authorization control.
-const WHITELISTED_EMAILS = [ ADMIN_EMAIL, "placementcell@srcc.du.ac.in", "kohliashish12@gmail.com" ];
+const WHITELISTED_EMAILS = [ ADMIN_EMAIL, 'srcc.pc.fns2526@gmail.com', 'placementcell@srcc.du.ac.in', 'shourayaaggarwal2006@gmail.com','sjonumwalia@gmail.com','tanvibansal0607@gmail.com','kohliashish12@gmail.com','dhwani1006@gmail.com','harshit.9731@gmail.com','aditya5462006@gmail.com','sharmamanzil05@gmail.com','rohangehani1@gmail.com','cheshani2006@gmail.com','gunjan17guptaa@gmail.com','sandeepramani2006@gmail.com','aadityagoyal0108@gmail.com','aayatirgoyal@gmail.com','mothikrishna86217@gmail.com' ];
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
