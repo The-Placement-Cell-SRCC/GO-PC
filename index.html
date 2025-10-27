@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GO-PC || The Placement Cell, SRCC - BETA</title>
+    <!-- {/* Tailwind CSS */} -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- {/* Google Font */} -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- {/* Custom CSS */} -->
+    <link rel="stylesheet" href="/style.css">
+    <!-- {/* Favicon */} -->
+    <link rel="icon" type="image/png" href="/logo.png">
+    <!-- {/* Tailwind Config */} -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'], // Corrected font name
+                    },
+                    colors: {
+                        'primary': '#4F46E5', // A vibrant indigo
+                        'primary-dark': '#3730A3',
+                        'secondary': '#10B981', // A minty green
+                        'background': '#F8FAFC', // Almost white (used for main area)
+                        'surface': '#FFFFFF', // White (used for cards)
+                        'border': '#E2E8F0', // Light gray
+                        'text-primary': '#0F172A', // Dark Slate Gray
+                        'text-secondary': '#64748B', // Medium Slate Gray
+                        'sidebar': '#111827', // Very Dark Gray (almost black)
+                        'error': '#EF4444', // Red
+                        'warning-amber': '#F59E0B', // Amber for warnings
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-background text-text-primary font-sans antialiased overflow-hidden"> 
+    <div class="aurora-background"></div>
+
+    <!-- {/* Loading Screen */} -->
+    <div id="loading-screen" class="fixed inset-0 bg-surface/80 backdrop-blur-sm flex flex-col items-center justify-center z-50 transition-opacity duration-300 ease-out">
+        <div class="loader"></div>
+        <p class="mt-4 text-text-secondary">Initialising GO-PC...</p>
+    </div>
+
+    <!-- {/* Auth Screen (Content injected by JS) */} -->
+    <div id="auth-screen" class="hidden">
+    </div>
+
+    <!-- {/* App Screen (Main UI) */} -->
+    <div id="app-screen" class="hidden h-screen flex">
+        <!-- {/* Sidebar */} -->
+        <aside class="w-[260px] bg-sidebar text-white flex flex-col p-4 flex-shrink-0"> 
+             <!-- {/* Logo and Title */} -->
+             <div class="flex items-center gap-3 px-3 py-2 mb-8">
+                <img class="w-9 h-9 bg-white/10 rounded-lg p-1" src="/logo.png" alt="GO-PC Logo">
+                <h1 class="text-xl font-bold text-white">GO-PC</h1>
+            </div>
+            <!-- {/* Navigation (Content injected by JS) */} -->
+            <nav id="tool-nav" class="flex-grow space-y-1 overflow-y-auto">
+                <!-- {/* Nav items will be rendered here */} -->
+            </nav>
+            <!-- {/* User Profile (Content injected by JS, pushed to bottom) */} -->
+            <div id="user-profile-container" class="mt-auto flex-shrink-0"> 
+                <!-- {/* User profile will be rendered here */} -->
+            </div>
+        </aside>
+        <!-- {/* Main Content Area */} -->
+        <main id="main-content-wrapper" class="flex-1 flex flex-col overflow-hidden">
+            <!-- {/* Header (Content injected by JS) */} -->
+            <header id="main-header" class="bg-background/90 backdrop-blur-sm z-10 p-6 border-b border-border flex-shrink-0"> {/* Added flex-shrink-0 */}
+                <!-- {/* Header will be rendered here */} -->
+            </header>
+            <!-- {/* Scrollable Tool Content Area */} -->
+            <div id="main-content" class="flex-1 overflow-y-auto p-6 md:p-8">
+                <!-- {/* Tool content will be rendered here */} -->
+            </div>
+        </main>
+    </div>
+
+    <!-- {/* Main JavaScript Module */} -->
+    <script type="module" src="/main.js"></script>
+
+</body>
+</html>
