@@ -113,8 +113,8 @@ function setup() {
     'GDRIVE_OUTPUT_PARENT_ID': '17zXnLxH6q5se-kmQTiiO6Ov9quw1VYZ8',
     'TEMP_ZIP_FOLDER_ID': '1Qrf03gYySfML9HOR8Oi5ZWs4h-xWgtaF',
     'ADMIN_EMAIL': 'fns.placementcell@srcc.du.ac.in',
-    'APPROVAL_EMAIL': 'kohliashish12@gmail.com',
-    'REQUIRE_APPROVAL': 'false'
+    'APPROVAL_EMAIL': 'srcc.pc.fns2526@gmail.com',
+    'REQUIRE_APPROVAL': 'true'
   };
   
   PropertiesService.getScriptProperties().setProperties(config);
@@ -144,7 +144,10 @@ function handleApprovalCallback(approvalId) {
   var requestDataJson = PropertiesService.getScriptProperties().getProperty(propKey);
   
   if (!requestDataJson) {
-    return HtmlService.createHtmlOutput('<h1>Request Not Found</h1>');
+    return HtmlService.createHtmlOutput(
+      '<h1>Request Not Found</h1>' +
+      '<p>This approval link is invalid, has expired, or the request has already been processed.</p>'
+    );
   }
 
   try {
@@ -162,13 +165,214 @@ function handleApprovalCallback(approvalId) {
       JSON.stringify(result)
     );
 
+    // Send email notification to the user who requested it
+    var userEmail = requestData.userEmail;
+    var outputType = requestData.outputType;
+    var outputName = requestData.outputName;
+    
+    var emailSubjecttouser = 'CV Sorter Pull Request || ' + outputName;
+    var bodytouser = 'Dear SC,\nGreetings from GO-PC!\nTrust you are doing well.\n\n' +
+    'This is to inform you that your CV sorting pull request has been authorised and processed. ' +
+    'Please find below the details and Google Drive/ZIP File(s) Link:\n\n';
+
+    bodytouser += 'Output Name: ' + outputName + '\n';
+    // bodytouser += 'Output Type: ' + outputType + '\n';
+    bodytouser += 'CVs Processed: ' + (result.processedKeys ? result.processedKeys.length : 0) + '\n\n';
+
+    if (result.status === 'success') {
+      if (outputType === 'gdrive' && result.folderUrl) {
+        bodytouser += 'Google Drive Folder: ' + result.folderUrl + '\n';
+      } else if (outputType === 'zip' && result.downloadUrls && result.downloadUrls.length > 0) {
+        bodytouser += 'Download ZIP file(s):\n';
+        for (var i = 0; i < result.downloadUrls.length; i++) {
+          bodytouser += 'Part ' + (i + 1) + ': ' + result.downloadUrls[i] + '\n';
+        }
+        bodytouser += '\n';
+      }
+    }
+
+    if (result.errors && result.errors.length > 0) {
+      bodytouser += '▲ Errors encountered:\n' + result.errors.join('\n') + '\n\n';
+    }
+
+    bodytouser += 'Processed at: ' + new Date().toLocaleString() + '\n';
+    bodytouser += 'Warm Regards\nGO-PC';
+    
+    var htmlBodytouser = `
+  <body style="margin: 0; padding: 0; background-color: #1b3055; font-family: 'Trebuchet MS', Arial, sans-serif; -webkit-font-smoothing: antialiased; word-spacing: normal;">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr>
+        <td align="center" style="padding: 40px 10px; background-color: #1b3055;">
+          <!--[if (gte mso 9)|(IE)]>
+          <table align="center" border="0" cellspacing="0" cellpadding="0" width="600">
+          <tr>
+          <td align="center" valign="top">
+          <![endif]-->
+          
+          <table border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 600px; background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+            <tr>
+              <td style="padding: 40px 30px; color: #333333; font-size: 16px; line-height: 1.6;">
+                
+                <h1 style="color: #1b3055; margin-top: 0; margin-bottom: 24px; font-size: 24px; font-weight: bold; text-align: center;">CV Sorter Pull Request</h1>
+                
+                <p style="margin-bottom: -20px;">Dear SC,</p>
+                <p style="margin-bottom: 0px;">Greetings from GO-PC!</p>
+                <p style="margin-bottom: 0px;">Trust you are doing well.</p>
+                <p style="margin-bottom: 20px;">This is to inform you that your CV sorting pull request has been authorised and processed. Please find the details below:</p>
+                
+                <!-- Details Table -->
+                <table border="0" cellpadding="0" cellspacing="0" width="100%" style="margin-bottom: 30px; border: 1px solid #eeeeee; border-radius: 4px; border-collapse: separate; overflow: hidden;">
+                  <tr>
+                    <td style="padding: 12px 15px; border-bottom: 1px solid #eeeeee; background-color: #f9f9f9; color: #555555; font-weight: bold; width: 40%;">Folder Name:</td>
+                    <td style="padding: 12px 15px; border-bottom: 1px solid #eeeeee; color: #1b3055; font-weight: bold; width: 60%;">${outputName}</td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 12px 15px; background-color: #f9f9f9; color: #555555; font-weight: bold;">CVs Processed:</td>
+                    <td style="padding: 12px 15px; color: #1b3055; font-weight: bold;">${result.processedKeys ? result.processedKeys.length : 0}</td>
+                  </tr>
+                </table>
+  `;
+
+  // --- Success Logic ---
+  if (result.status === 'success') {
+    if (outputType === 'gdrive' && result.folderUrl) {
+      // Add Google Drive Button
+      htmlBodytouser += `
+        <table border="0" cellpadding="0" cellspacing="0" width="100%" style="margin-bottom: 30px;">
+          <tr>
+            <td align="center">
+              <a href="${result.folderUrl}" target="_blank" style="background-color: #1b3055; color: #ffffff; padding: 14px 28px; text-decoration: none; border-radius: 5px; display: inline-block; font-weight: bold; font-size: 16px; mso-padding-alt: 0; text-underline-color: #1b3055;">
+                <!--[if mso]><i style="letter-spacing: 28px; mso-font-width: -100%; mso-text-raise: 30pt;">&nbsp;</i><![endif]-->
+                <span style="mso-text-raise: 15pt;">Open Google Drive Folder</span>
+                <!--[if mso]><i style="letter-spacing: 28px; mso-font-width: -100%;">&nbsp;</i><![endif]-->
+              </a>
+            </td>
+          </tr>
+        </table>
+      `;
+    } else if (outputType === 'zip' && result.downloadUrls && result.downloadUrls.length > 0) {
+      // Add ZIP File Links
+      htmlBodytouser += `<h3 style="color: #1b3055; margin-top: 20px; margin-bottom: 10px; border-bottom: 1px solid #eee; padding-bottom: 5px;">Download ZIP File(s):</h3>`;
+      htmlBodytouser += `<div style="line-height: 1.8; font-size: 15px;">`;
+      for (var i = 0; i < result.downloadUrls.length; i++) {
+        htmlBodytouser += `
+          <p style="margin: 5px 0;">
+            <strong style="color: #333;">Part ${i + 1}:</strong> 
+            <a href="${result.downloadUrls[i]}" target="_blank" style="color: #1b3055; text-decoration: underline; word-break: break-all;">${result.downloadUrls[i]}</a>
+          </p>
+        `;
+      }
+      htmlBodytouser += `</div>`;
+    }
+  }
+
+  // --- Error Logic ---
+  if (result.errors && result.errors.length > 0) {
+    htmlBodytouser += `
+      <div style="margin-top: 25px; padding: 15px; background-color: #fff0f0; border: 1px solid #e0b4b4; border-radius: 5px; color: #c00;">
+        <h3 style="margin-top: 0; margin-bottom: 10px; color: #c00;">▲ Errors Encountered:</h3>
+        <p style="margin: 0; line-height: 1.5; font-family: 'Courier New', Courier, monospace; font-size: 14px; word-break: break-all; word-wrap: break-word;">
+          ${result.errors.join('<br>')}
+        </p>
+      </div>
+    `;
+  }
+
+  // --- Footer and Closing Tags ---
+  htmlBodytouser += `
+                <p style="margin-top: 40px; margin-bottom: 0; font-size: 14px; color: #555;">Processed at: ${new Date().toLocaleString()}</p>
+                <p style="margin-top: 25px; margin-bottom: 0;">Warm Regards</p>
+                <p style="margin-top: 5px; margin-bottom: 0;">GO-PC</p>
+              </td>
+            </tr>
+          </table>
+          
+          <!--[if (gte mso 9)|(IE)]>
+          </td>
+          </tr>
+          </table>
+          <![endif]-->
+          
+          <table border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 600px; margin-top: 20px;">
+             <tr>
+               <td align="center" style="color: #cccccc; font-size: 12px; padding: 10px; font-family: Arial, sans-serif;">
+                 This is an automated message. Please do not reply.
+               </td>
+             </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+  `;
+    // Send email to user
+    
+    GmailApp.sendEmail(userEmail, emailSubjecttouser, bodytouser, {
+    htmlBody: htmlBodytouser
+    });
+
+    // Build success HTML page for admin
+    var detailsHtml = '<li>Status: <strong style="color: green;">' + result.status + '</strong></li>';
+    if (result.folderUrl) {
+      detailsHtml += '<li>Folder URL: <a href="' + result.folderUrl + '" target="_blank">' + result.folderUrl + '</a></li>';
+    }
+    if (result.downloadUrls && result.downloadUrls.length > 0) {
+      detailsHtml += '<li>ZIP Download URLs:<ul>';
+      for (var j = 0; j < result.downloadUrls.length; j++) {
+        detailsHtml += '<li><a href="' + result.downloadUrls[j] + '" target="_blank">Part ' + (j + 1) + '</a></li>';
+      }
+      detailsHtml += '</ul></li>';
+    }
+    if (result.processedKeys) {
+      detailsHtml += '<li>CVs Processed: ' + result.processedKeys.length + '</li>';
+    }
+    if (result.errors && result.errors.length > 0) {
+      detailsHtml += '<li style="color: red;">Errors Encountered (' + result.errors.length + '): <pre>' + result.errors.join('\n') + '</pre></li>';
+    }
+
     return HtmlService.createHtmlOutput(
+      '<style>body{font-family:Arial,sans-serif;padding:20px;max-width:800px;margin:0 auto}h1{color:#2e7d32}ul{line-height:1.8}</style>' +
       '<h1>✅ Request Approved & Processed</h1>' +
-      '<p>Status: ' + result.status + '</p>'
+      '<p>The CV sorting request has been successfully processed and the user has been notified via email.</p>' +
+      '<h3>Request Details:</h3>' +
+      '<ul>' +
+      '<li>User: ' + requestData.userEmail + '</li>' +
+      '<li>Output Name: ' + requestData.outputName + '</li>' +
+      '<li>Output Type: ' + requestData.outputType + '</li>' +
+      '<li>Timestamp: ' + new Date(requestData.timestamp).toLocaleString() + '</li>' +
+      '</ul>' +
+      '<h3>Processing Results:</h3>' +
+      '<ul>' + detailsHtml + '</ul>' +
+      '<p style="background:#e8f5e9;padding:15px;border-radius:5px;margin-top:20px">' +
+      '📧 A notification email with these details has been sent to <strong>' + userEmail + '</strong></p>'
     );
+
   } catch (err) {
     Logger.log('Approval Error: ' + err.message);
-    return HtmlService.createHtmlOutput('<h1>Error</h1><p>' + err.message + '</p>');
+    Logger.log('Stack: ' + err.stack);
+    
+    // Try to log error
+    try {
+      var requestData = JSON.parse(requestDataJson || '{}');
+      logRequest(
+        new Date(),
+        requestData.userEmail || 'Unknown',
+        requestData.outputName || 'Unknown',
+        requestData.outputType || 'Unknown',
+        'N/A',
+        'Error: Processing Failed After Approval',
+        err.message
+      );
+    } catch (logErr) {
+      Logger.log('Failed to log approval error');
+    }
+    
+    return HtmlService.createHtmlOutput(
+      '<style>body{font-family:Arial,sans-serif;padding:20px;max-width:800px;margin:0 auto}h1{color:#c62828}</style>' +
+      '<h1>❌ Error Processing Request</h1>' +
+      '<p>Failed to process the request after approval: ' + err.message + '</p>' +
+      '<p>Please check the script logs for details or contact the developer.</p>'
+    );
   }
 }
 
@@ -196,14 +400,85 @@ function handleApprovalRequest(requestData) {
     throw new Error('APPROVAL_EMAIL not configured');
   }
   
-  var subject = 'CV Sorter Approval Required: ' + requestData.outputName;
-  var body = 
-    'Request from: ' + requestData.userEmail + '\n' +
-    'Output Name: ' + requestData.outputName + '\n' +
-    'Number of CVs: ' + requestData.keys.length + '\n\n' +
-    'Approval Link: ' + approvalLink;
-  
-  MailApp.sendEmail(approvalEmail, subject, body);
+  var subject = 'Authorisation Request || ' + requestData.outputName;
+  var htmlBody = `
+  <body style="margin: 0; padding: 0; background-color: #1b3055; font-family: 'Trebuchet MS', Arial, sans-serif; -webkit-font-smoothing: antialiased; word-spacing: normal;">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr>
+        <td align="center" style="padding: 40px 10px; background-color: #1b3055;">
+          
+          <!--[if (gte mso 9)|(IE)]>
+          <table align="center" border="0" cellspacing="0" cellpadding="0" width="600">
+          <tr>
+          <td align="center" valign="top">
+          <![endif]-->
+          
+          <table border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 600px; background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+            <tr>
+              <td style="padding: 40px 30px; color: #333333; font-size: 16px; line-height: 1.6;">
+                
+                <h1 style="color: #1b3055; margin-top: 0; margin-bottom: 24px; font-size: 24px; font-weight: bold; text-align: center;">CV Sorter Approval Request</h1>
+                
+                <p style="margin-top: 0; margin-bottom: 20px;">Dear FnS,</p>
+                
+                <p style="margin-bottom: 25px;">This is to request you to kindly authourise the following CV Sorter Pull Request made by <strong style="color: #1b3055;">${requestData.userEmail}</strong>:</p>
+                
+                <table border="0" cellpadding="0" cellspacing="0" width="100%" style="margin-bottom: 30px; border: 1px solid #eeeeee; border-radius: 4px; border-collapse: separate; overflow: hidden;">
+                  <tr>
+                    <td style="padding: 12px 15px; border-bottom: 1px solid #eeeeee; background-color: #f9f9f9; color: #555555; font-weight: bold; width: 40%;">Output Name:</td>
+                    <td style="padding: 12px 15px; border-bottom: 1px solid #eeeeee; color: #1b3055; font-weight: bold; width: 60%;">${requestData.outputName}</td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 12px 15px; background-color: #f9f9f9; color: #555555; font-weight: bold;">Number of CVs:</td>
+                    <td style="padding: 12px 15px; color: #1b3055; font-weight: bold;">${requestData.keys.length}</td>
+                  </tr>
+                </table>
+
+                <table border="0" cellpadding="0" cellspacing="0" width="100%" style="margin-bottom: 30px;">
+                  <tr>
+                    <td align="center">
+                      <a href="${approvalLink}" target="_blank" style="background-color: #1b3055; color: #ffffff; padding: 14px 28px; text-decoration: none; border-radius: 5px; display: inline-block; font-weight: bold; font-size: 16px; mso-padding-alt: 0; text-underline-color: #1b3055;">
+                        <!--[if mso]><i style="letter-spacing: 28px; mso-font-width: -100%; mso-text-raise: 30pt;">&nbsp;</i><![endif]-->
+                        <span style="mso-text-raise: 15pt;">Click to Authorise</span>
+                        <!--[if mso]><i style="letter-spacing: 28px; mso-font-width: -100%;">&nbsp;</i><![endif]-->
+                      </a>
+                    </td>
+                  </tr>
+                </table>
+                
+                <p style="margin-top: 40px; margin-bottom: 0;">Warm Regards</p>
+                <p style="margin-top: 5px; margin-bottom: 0;">GO-PC</p>
+              </td>
+            </tr>
+          </table>
+          
+          <!--[if (gte mso 9)|(IE)]>
+          </td>
+          </tr>
+          </table>
+          <![endif]-->
+          
+          <table border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 600px; margin-top: 20px;">
+             <tr>
+               <td align="center" style="color: #cccccc; font-size: 12px; padding: 10px; font-family: Arial, sans-serif;">
+                 This is an automated message. Please do not reply.
+               </td>
+             </tr>
+          </table>
+
+        </td>
+      </tr>
+    </table>
+  </body>
+  `;
+  GmailApp.sendEmail(approvalEmail, subject, "Not Working", {
+    htmlBody: htmlBody
+  });
+
+  // MailApp.sendEmail({
+  //   to: approvalEmail, 
+  //   subject: subject,
+  //   htmlBody : htmlBody});
   
   logRequest(
     timestamp,

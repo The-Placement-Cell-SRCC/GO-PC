@@ -344,6 +344,7 @@ function runCVSorter(container, user, { logActivity }) {
 
 
     // --- Handles the Generation Request (ZIP or GDrive) ---
+    // SIMPLIFIED FETCH - Avoid CORS preflight by using simple requests
     async function handleGenerate(keysToProcessSet) {
     const outputNameInput = container.querySelector('#output-name-input');
     const outputTypeSelect = container.querySelector('#output-type-select');
@@ -429,7 +430,13 @@ function runCVSorter(container, user, { logActivity }) {
                 logActivity(user, `CV Sort success: ${outputName} (${keysArray.length} CVs, ${outputType})`);
             }
         } else if (result.status === 'approval_sent') {
-            showFeedback('Request sent for admin approval. You will be notified when processed.', 'info');
+            showFeedback(
+                '⏳ <strong>Approval Required</strong><br>' +
+                'Your request has been sent to the admin for approval.<br>' +
+                'You will receive an email notification with the download links once it is approved.<br>' +
+                '<span class="text-xs opacity-75">This usually takes a few minutes.</span>', 
+                'info'
+            );
             if (typeof logActivity === 'function') {
                 logActivity(user, `CV Sort approval requested: ${outputName}`);
             }
@@ -447,6 +454,7 @@ function runCVSorter(container, user, { logActivity }) {
         generateBtn.disabled = false;
     }
 }
+
 
     // --- HTML Template Functions ---
     // NOTE: These return strings to be used with innerHTML in reRender()
