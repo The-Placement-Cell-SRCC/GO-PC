@@ -18,7 +18,7 @@ let cvData = new Map(); // Key: "24BC581 A", Value: { fileName: "...", gdriveLin
 let selectedKeys = new Set();
 let currentMode = 'loading'; // loading, error, selectMethod, selectList, pasteRolls
 const ROLL_VARIANT_REGEX = /(\d{2}[A-Z]{2}\d{3}\s[A-C])/i; // Added 'i' flag for case-insensitive matching
-const CV_SORTER_GAS_URL = "https://script.google.com/macros/s/AKfycbyMvCESqD2binugno_IC4YbcNcqVGbNCbIYDqBPeMy2NQOaIRvnamI173omWYQ9bwWY/exec";
+const CV_SORTER_GAS_URL = "https://script.google.com/macros/s/AKfycbwODlCwdVbWf95F__YBwokhTZ1k3xIVDw2ofn6X27OKEVIEnLwTb5KuuS7fAQ9nUi_b/exec";
 
 // --- Tool Definition ---
 const tool = {
@@ -374,7 +374,35 @@ function runCVSorter(container, user, { logActivity }) {
     if (keysArray.length === 0) return showFeedback("No valid CV keys selected or provided.", 'error');
 
     generateBtn.disabled = true;
-    showFeedback(`Sending request to process ${keysArray.length} CVs... <div class="loader-small inline-block ml-2"></div>`, 'info');
+
+    // --- NEW Progress Indicator Logic ---
+    const numKeys = keysArray.length;
+    // Estimate: 1.2 seconds per CV + 5 seconds overhead (init, zipping, saving)
+    const estimatedSeconds = Math.ceil((numKeys * 1.2) + 5); 
+    
+    // --- NEW ETA Time Calculation ---
+    const now = new Date();
+    const etaDate = new Date(now.getTime() + estimatedSeconds * 1000);
+    // Formats the future time to something like "04:27 AM"
+    const etaMessage = `Est. ${etaDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true })}`;
+    // --- End NEW ETA Time Calculation ---
+
+    const progressHtml = `
+        <div class="space-y-3">
+            <div class="flex justify-between items-center text-sm font-semibold">
+                <span class="text-primary">Processing ${numKeys} CVs...</span>
+                <span class="text-text-secondary">${etaMessage}</span>
+            </div>
+            <!-- Indeterminate Progress Bar -->
+            <div class="w-full bg-gray-200 rounded-full h-2.5 overflow-hidden">
+                <div class="bg-primary h-2.5 rounded-full animate-pulse"></div>
+            </div>
+            <p class="text-xs text-text-secondary text-center">Please keep this tab open. This may take several minutes.</p>
+        </div>
+    `;
+    
+    showFeedback(progressHtml, 'info');
+    // --- End NEW Progress Indicator Logic ---
 
     try {
         // IMPORTANT: Update this URL with your deployment URL
@@ -643,3 +671,4 @@ export { tool };
 
 // Removed the duplicate onAuthStateChanged, renderAppShell, etc. logic from here.
 // It belongs in main.js.
+
