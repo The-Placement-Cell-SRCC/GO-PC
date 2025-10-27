@@ -195,7 +195,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Populate sidebar navigation based on available tools and user role
         toolNav.innerHTML = Object.keys(tools).map(key => {
             // Only show admin tools (cv-sorter, analytics) if user is admin
-            if ((key === 'cv-sorter' || key === 'analytics') && !isAdmin) {
+            if ((key === 'analytics') && !isAdmin) {
                 return ''; // Skip rendering for non-admins
             }
             const tool = tools[key];
@@ -242,7 +242,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const isAdmin = user.email === ADMIN_EMAIL;
 
         // Double-check authorization before loading admin tools
-        if ((toolKey === 'cv-sorter' || toolKey === 'analytics') && !isAdmin) {
+        if ((toolKey === 'analytics') && !isAdmin) {
             console.warn(`Unauthorized attempt by ${user.email} to access admin tool: ${toolKey}. Redirecting to dashboard.`);
             loadTool('dashboard', user); // Redirect non-admins to dashboard
             return; // Stop further execution
