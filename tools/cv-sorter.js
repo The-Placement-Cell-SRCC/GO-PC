@@ -345,112 +345,108 @@ function runCVSorter(container, user, { logActivity }) {
 
     // --- Handles the Generation Request (ZIP or GDrive) ---
     async function handleGenerate(keysToProcessSet) {
-        // Find UI elements within the current scope
-        const outputNameInput = container.querySelector('#output-name-input');
-        const outputTypeSelect = container.querySelector('#output-type-select');
-        const feedback = container.querySelector('#generation-feedback');
-        const generateBtn = container.querySelector('#generate-btn');
+    const outputNameInput = container.querySelector('#output-name-input');
+    const outputTypeSelect = container.querySelector('#output-type-select');
+    const feedback = container.querySelector('#generation-feedback');
+    const generateBtn = container.querySelector('#generate-btn');
 
-         // Ensure all required elements are found
-        if (!outputNameInput || !outputTypeSelect || !feedback || !generateBtn) {
-            console.error("Could not find necessary UI elements for generation.");
-            return;
-        }
-
-
-        const outputName = outputNameInput.value.trim();
-        const outputType = outputTypeSelect.value;
-        const keysArray = Array.from(keysToProcessSet); // Convert Set to Array
-
-        const showFeedback = (message, type = 'info') => {
-            feedback.innerHTML = message; // Use innerHTML to allow basic HTML like links or loaders
-            // Apply appropriate text color based on type
-            feedback.className = `text-center text-sm mt-2 ${ type === 'error' ? 'text-error' : type === 'success' ? 'text-secondary' : 'text-primary' }`;
-            feedback.classList.remove('hidden'); // Make feedback visible
-        };
-
-        // Basic validation before sending request
-        if (!outputName) return showFeedback("Please enter an output file/folder name.", 'error');
-        if (keysArray.length === 0) return showFeedback("No valid CV keys selected or provided.", 'error');
-
-        // Disable button and show loading feedback
-        generateBtn.disabled = true;
-        showFeedback(`Sending request to process ${keysArray.length} CVs... <div class="loader-small inline-block ml-2"></div>`, 'info');
-
-        try {
-            const response = await fetch(CV_SORTER_GAS_URL, {
-                method: 'POST',
-                // mode: 'cors', // CORS is usually required for cross-origin GAS requests
-                 headers: {
-                    'Content-Type': 'application/json',
-                    // Add any other headers required by your GAS script if necessary
-                 },
-                 body: JSON.stringify({
-                    keys: keysArray,
-                    outputName: outputName,
-                    outputType: outputType,
-                    userEmail: user.email // Send user email for logging/permissions on GAS side
-                 }),
-                 // redirect: 'follow' // Follow redirects if GAS script issues them
-            });
-
-            const contentType = response.headers.get("content-type");
-
-            // --- Robust Error Handling ---
-            if (!response.ok) {
-                 let errorMsg = `Request failed (${response.status} ${response.statusText})`;
-                 try {
-                     if (contentType && contentType.includes("application/json")) {
-                         const errorData = await response.json();
-                         errorMsg = errorData.error || errorData.message || `Server error: ${JSON.stringify(errorData)}`;
-                     } else {
-                         const textError = await response.text();
-                         errorMsg += ` - Server response: ${textError.substring(0, 200)}${textError.length > 200 ? '...' : ''}`; // Show snippet
-                     }
-                 } catch (parseError) {
-                      errorMsg += ` - Could not parse error response.`; // Error parsing the error response itself
-                 }
-                throw new Error(errorMsg);
-            }
-
-            // --- Success Handling ---
-             // Ensure response is JSON before parsing
-            if (!(contentType && contentType.includes("application/json"))) {
-                 console.warn("Received non-JSON response:", await response.text());
-                 throw new Error("Received an unexpected response format from the server. Expected JSON.");
-            }
-
-            const result = await response.json();
-
-            if (result.status === 'success') {
-                let successMsg = 'Success!';
-                if (result.type === 'zip' && result.downloadUrls && result.downloadUrls.length > 0) {
-                     successMsg += ` Download link(s): ${result.downloadUrls.map((url, i) => `<a href="${url}" target="_blank" class="text-primary underline hover:text-primary-dark">Part ${i + 1}</a>`).join(', ')}`;
-                } else if (result.type === 'gdrive' && result.folderUrl) {
-                    successMsg += ` Google Drive folder created: <a href="${result.folderUrl}" target="_blank" class="text-primary underline hover:text-primary-dark">${outputName}</a>`;
-                } else {
-                     successMsg += ` Status: ${result.message || 'Processing complete.'}`;
-                }
-                showFeedback(successMsg, 'success');
-                logActivity(user, `CV Sort success: ${outputName} (${keysArray.length} CVs, type: ${outputType})`);
-
-            } else if (result.status === 'approval_sent') {
-                showFeedback('Request requires admin approval. You might be notified once processed.', 'info');
-                logActivity(user, `CV Sort approval requested: ${outputName} (${keysArray.length} CVs, type: ${outputType})`);
-            } else {
-                // Handle cases where status is not 'success' or 'approval_sent'
-                throw new Error(result.error || result.message || 'Unknown processing status received from server.');
-            }
-
-        } catch (err) {
-            console.error("CV Sorter GAS Fetch Error:", err);
-            showFeedback(`Error: ${err.message}`, 'error');
-            logActivity(user, `CV Sort failed: ${outputName} - ${err.message}`);
-        } finally {
-            // Re-enable button regardless of success or failure
-            generateBtn.disabled = false;
-        }
+    if (!outputNameInput || !outputTypeSelect || !feedback || !generateBtn) {
+        console.error("Could not find necessary UI elements for generation.");
+        return;
     }
+
+    const outputName = outputNameInput.value.trim();
+    const outputType = outputTypeSelect.value;
+    const keysArray = Array.from(keysToProcessSet);
+
+    const showFeedback = (message, type = 'info') => {
+        feedback.innerHTML = message;
+        feedback.className = `text-center text-sm mt-2 ${ 
+            type === 'error' ? 'text-error' : 
+            type === 'success' ? 'text-secondary' : 
+            'text-primary' 
+        }`;
+        feedback.classList.remove('hidden');
+    };
+
+    if (!outputName) return showFeedback("Please enter an output file/folder name.", 'error');
+    if (keysArray.length === 0) return showFeedback("No valid CV keys selected or provided.", 'error');
+
+    generateBtn.disabled = true;
+    showFeedback(`Sending request to process ${keysArray.length} CVs... <div class="loader-small inline-block ml-2"></div>`, 'info');
+
+    try {
+        // IMPORTANT: Update this URL with your deployment URL
+        const GAS_URL = CV_SORTER_GAS_URL;
+        
+        console.log('Sending request to:', GAS_URL);
+
+        // Create form data to avoid preflight
+        const formData = new FormData();
+        formData.append('payload', JSON.stringify({
+            keys: keysArray,
+            outputName: outputName,
+            outputType: outputType,
+            userEmail: user.email
+        }));
+
+        const response = await fetch(GAS_URL, {
+            method: 'POST',
+            body: formData,
+            // No Content-Type header - let browser set it for FormData
+            // This avoids CORS preflight
+        });
+
+        console.log('Response status:', response.status);
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error('Error response:', errorText);
+            throw new Error(`Request failed (${response.status}): ${errorText.substring(0, 200)}`);
+        }
+
+        const contentType = response.headers.get("content-type");
+        if (!(contentType && contentType.includes("application/json"))) {
+            const responseText = await response.text();
+            console.error('Non-JSON response:', responseText);
+            throw new Error("Received unexpected response format from server.");
+        }
+
+        const result = await response.json();
+        console.log('Success result:', result);
+
+        if (result.status === 'success') {
+            let successMsg = 'Success! ';
+            if (outputType === 'zip' && result.downloadUrls && result.downloadUrls.length > 0) {
+                successMsg += `Download: ${result.downloadUrls.map((url, i) => 
+                    `<a href="${url}" target="_blank" class="text-primary underline hover:text-primary-dark">Part ${i + 1}</a>`
+                ).join(', ')}`;
+            } else if (outputType === 'gdrive' && result.folderUrl) {
+                successMsg += `<a href="${result.folderUrl}" target="_blank" class="text-primary underline hover:text-primary-dark">Open Folder</a>`;
+            }
+            showFeedback(successMsg, 'success');
+            if (typeof logActivity === 'function') {
+                logActivity(user, `CV Sort success: ${outputName} (${keysArray.length} CVs, ${outputType})`);
+            }
+        } else if (result.status === 'approval_sent') {
+            showFeedback('Request sent for admin approval. You will be notified when processed.', 'info');
+            if (typeof logActivity === 'function') {
+                logActivity(user, `CV Sort approval requested: ${outputName}`);
+            }
+        } else {
+            throw new Error(result.message || result.error || 'Unknown error occurred');
+        }
+
+    } catch (err) {
+        console.error("CV Sorter Fetch Error:", err);
+        showFeedback(`Error: ${err.message}`, 'error');
+        if (typeof logActivity === 'function') {
+            logActivity(user, `CV Sort failed: ${outputName} - ${err.message}`);
+        }
+    } finally {
+        generateBtn.disabled = false;
+    }
+}
 
     // --- HTML Template Functions ---
     // NOTE: These return strings to be used with innerHTML in reRender()
