@@ -176,23 +176,30 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- Mobile Sidebar Toggle ---
+    // --- Mobile Sidebar Toggle ---
     function toggleSidebar() {
         sidebar.classList.toggle('-translate-x-full');
         sidebarOverlay.classList.toggle('hidden');
         sidebarOverlay.classList.toggle('opacity-0');
     }
 
-    // --- Desktop Sidebar Toggle ---
-    // FIX: Updated function to swap icon
+    // --- Desktop Sidebar Toggle (FIXED) ---
     function toggleSidebarCollapse() {
         const appScreen = document.getElementById('app-screen');
-        const collapseIcon = document.querySelector('#collapse-btn i');
+        const collapseBtn = document.getElementById('collapse-btn');
+        
+        if (!appScreen || !collapseBtn) {
+            console.error('Collapse elements not found');
+            return;
+        }
         
         // Toggle the class on the main app screen
-        const isCollapsed = appScreen.classList.toggle('sidebar-collapsed');
+        appScreen.classList.toggle('sidebar-collapsed');
         
         // Update the icon to reflect the new state
+        const collapseIcon = collapseBtn.querySelector('i');
         if (collapseIcon) {
+            const isCollapsed = appScreen.classList.contains('sidebar-collapsed');
             collapseIcon.setAttribute('data-lucide', isCollapsed ? 'chevrons-right' : 'chevrons-left');
             lucide.createIcons(); // Re-render the icon
         }
@@ -200,7 +207,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     // --- Renders the Main Application Shell (Sidebar, Header, User Profile) ---
-    function renderAppShell(user) {
+        function renderAppShell(user) {
         const isAdmin = user.email === ADMIN_EMAIL; 
 
         toolNav.innerHTML = Object.keys(tools).map(key => {
@@ -215,13 +222,13 @@ document.addEventListener('DOMContentLoaded', () => {
         }).join('');
 
         userProfileContainer.innerHTML = `
-            <button id="collapse-btn" class="nav-item mb-1 w-full hidden lg:flex">
-                <i data-lucide="chevrons-left" class="w-5 h-5 mr-3 transition-transform duration-300 ease-in-out"></i>
+            <button id="collapse-btn" class="nav-item mb-2 w-full hidden lg:flex hover:bg-white/5">
+                <i data-lucide="chevrons-left" class="w-5 h-5 mr-3 transition-transform duration-300"></i>
                 <span class="nav-item-text">Collapse Menu</span>
             </button>
 
-            <div class="border-t border-white/10 pt-4">
-                 <div id="user-profile-card" class="flex items-center p-2 rounded-lg transition-all duration-300 ease-in-out">
+            <div class="border-t border-white/10 pt-3">
+                <div id="user-profile-card" class="flex items-center p-2 rounded-lg transition-all duration-300">
                     <img id="user-avatar" src="${user.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.displayName)}&background=4F46E5&color=fff`}" alt="User Avatar" class="w-9 h-9 rounded-full object-cover border-2 border-white/20 shrink-0" />
                     <div id="user-profile-info" class="ml-3 flex-1 min-w-0 nav-item-text">
                         <p class="text-sm font-semibold truncate text-white" title="${user.displayName}">${user.displayName}</p>
@@ -244,16 +251,29 @@ document.addEventListener('DOMContentLoaded', () => {
         `;
 
         // Attach listeners after rendering
-        document.getElementById('logout-button').addEventListener('click', () => {
-             logActivity(user, "User Logged Out"); 
-             signOut(auth);
-        });
-
-        document.getElementById('menu-toggle-btn').addEventListener('click', toggleSidebar);
-        sidebarOverlay.addEventListener('click', toggleSidebar);
+        const logoutBtn = document.getElementById('logout-button');
+        const menuToggleBtn = document.getElementById('menu-toggle-btn');
+        const collapseBtn = document.getElementById('collapse-btn');
         
-        // Attach listener for collapse button
-        document.getElementById('collapse-btn').addEventListener('click', toggleSidebarCollapse);
+        if (logoutBtn) {
+            logoutBtn.addEventListener('click', () => {
+                logActivity(user, "User Logged Out"); 
+                signOut(auth);
+            });
+        }
+
+        if (menuToggleBtn) {
+            menuToggleBtn.addEventListener('click', toggleSidebar);
+        }
+        
+        if (sidebarOverlay) {
+            sidebarOverlay.addEventListener('click', toggleSidebar);
+        }
+        
+        // Attach listener for collapse button (FIXED)
+        if (collapseBtn) {
+            collapseBtn.addEventListener('click', toggleSidebarCollapse);
+        }
 
         toolNav.addEventListener('click', e => {
             const link = e.target.closest('a[data-tool]');
@@ -326,3 +346,26 @@ document.addEventListener('DOMContentLoaded', () => {
     }, 1500); 
 
 }); // End DOMContentLoaded
+
+// Emergency collapse button fix - runs after page load
+window.addEventListener('load', () => {
+    setTimeout(() => {
+        const collapseBtn = document.getElementById('collapse-btn');
+        if (collapseBtn && !collapseBtn.hasAttribute('data-listener-attached')) {
+            collapseBtn.addEventListener('click', () => {
+                const appScreen = document.getElementById('app-screen');
+                if (appScreen) {
+                    appScreen.classList.toggle('sidebar-collapsed');
+                    const icon = collapseBtn.querySelector('i');
+                    if (icon) {
+                        const isCollapsed = appScreen.classList.contains('sidebar-collapsed');
+                        icon.setAttribute('data-lucide', isCollapsed ? 'chevrons-right' : 'chevrons-left');
+                        lucide.createIcons();
+                    }
+                }
+            });
+            collapseBtn.setAttribute('data-listener-attached', 'true');
+            console.log('✅ Emergency collapse listener attached');
+        }
+    }, 1000);
+});
