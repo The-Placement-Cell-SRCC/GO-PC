@@ -102,7 +102,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Renders the Authentication Screen Layout ---
     function renderAuthShell() {
-        // REVERT: Back to two-panel layout with color
+        // Two-panel layout with color
         const html = `
             <div class="min-h-screen flex">
                 <!-- Colored Panel -->
@@ -183,10 +183,21 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- Desktop Sidebar Toggle ---
+    // FIX: Updated function to swap icon
     function toggleSidebarCollapse() {
-        // FIX: This now correctly targets the 'app-screen' element
-        document.getElementById('app-screen').classList.toggle('sidebar-collapsed');
+        const appScreen = document.getElementById('app-screen');
+        const collapseIcon = document.querySelector('#collapse-btn i');
+        
+        // Toggle the class on the main app screen
+        const isCollapsed = appScreen.classList.toggle('sidebar-collapsed');
+        
+        // Update the icon to reflect the new state
+        if (collapseIcon) {
+            collapseIcon.setAttribute('data-lucide', isCollapsed ? 'chevrons-right' : 'chevrons-left');
+            lucide.createIcons(); // Re-render the icon
+        }
     }
+
 
     // --- Renders the Main Application Shell (Sidebar, Header, User Profile) ---
     function renderAppShell(user) {
@@ -232,6 +243,7 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
         `;
 
+        // Attach listeners after rendering
         document.getElementById('logout-button').addEventListener('click', () => {
              logActivity(user, "User Logged Out"); 
              signOut(auth);
@@ -240,7 +252,7 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('menu-toggle-btn').addEventListener('click', toggleSidebar);
         sidebarOverlay.addEventListener('click', toggleSidebar);
         
-        // FIX: Attach listener for collapse button
+        // Attach listener for collapse button
         document.getElementById('collapse-btn').addEventListener('click', toggleSidebarCollapse);
 
         toolNav.addEventListener('click', e => {
@@ -314,4 +326,3 @@ document.addEventListener('DOMContentLoaded', () => {
     }, 1500); 
 
 }); // End DOMContentLoaded
-

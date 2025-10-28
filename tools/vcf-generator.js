@@ -259,7 +259,7 @@ function runVCFGenerator(container, user, { logActivity }) {
         const { validStudents, invalidOrNotFound, duplicateRollsInPaste } = processPastedRolls(textArea.value);
 
          container.querySelector('#valid-count').textContent = `${validStudents.length} valid roll numbers found`;
-         container.querySelector('#duplicate-count').textContent = `${duplicateRollsInPaste.length} duplicate lines ignored`;
+         container.querySelector('#duplicate-count').textContent = `${duplicateLinesInPaste.length} duplicate lines ignored`;
          container.querySelector('#invalid-count').textContent = `${invalidOrNotFound.length} invalid or not found`;
 
          updateGenerateButtonState('paste');
@@ -339,7 +339,7 @@ function runVCFGenerator(container, user, { logActivity }) {
                             <span class="badge-blue">Best for: Selective generation</span>
                             <span class="text-text-secondary font-medium">${count} students</span>
                         </div>
-                        <i data-lucide="arrow-right" class="opacity-0 group-hover:opacity-100 transition-opacity w-6 h-6 text-primary absolute bottom-8 right-8 group-hover:translate-x-1 duration-200"></i>
+                        <i data-lucide="arrow-right" class="opacity-0 group-hover:opacity-100 transition-all w-6 h-6 text-primary absolute bottom-8 right-8 group-hover:translate-x-1 duration-200"></i>
                     </button>
                     <button id="paste-rolls-btn" class="action-card">
                         <i data-lucide="clipboard-paste" class="w-10 h-10 text-primary mb-4"></i>
@@ -349,7 +349,7 @@ function runVCFGenerator(container, user, { logActivity }) {
                             <span class="badge-blue">Best for: Quick bulk operations</span>
                             <span class="text-text-secondary font-medium">Faster for large batches</span>
                         </div>
-                        <i data-lucide="arrow-right" class="opacity-0 group-hover:opacity-100 transition-opacity w-6 h-6 text-primary absolute bottom-8 right-8 group-hover:translate-x-1 duration-200"></i>
+                        <i data-lucide="arrow-right" class="opacity-0 group-hover:opacity-100 transition-all w-6 h-6 text-primary absolute bottom-8 right-8 group-hover:translate-x-1 duration-200"></i>
                     </button>
                 </div>
             </div>`;
@@ -367,7 +367,7 @@ function runVCFGenerator(container, user, { logActivity }) {
                     </button>
                     <div>
                         <h2 class="text-2xl font-semibold text-text-primary">Select from List</h2>
-                        <p class="text-text-secondary">Choose the students to include in the VCF file.</p>
+                        <p class="text-text-secondary">Step 2 of 2: Choose students to include</p>
                     </div>
                 </div>
                 <div class-id="filter-container" class="relative">
@@ -380,14 +380,14 @@ function runVCFGenerator(container, user, { logActivity }) {
 
             <!-- List Content -->
             <div class="p-6 md:p-8">
-                <div id="filter-count" class="h-11 bg-gray-50 border border-border rounded-lg flex items-center px-4 text-text-secondary font-medium mb-4">
+                <div id="filter-count" class="h-11 bg-gray-50 border border-border rounded-lg flex items-center px-4 text-text-secondary font-medium mb-4 text-sm">
                     Showing ${data.length} of ${data.length} students
                 </div>
                 <!-- Student List -->
                 <div class="h-[45vh] overflow-y-auto border border-border rounded-lg bg-white">
                     <div class="flex items-center p-4 border-b border-border sticky top-0 bg-surface z-10">
                         <input type="checkbox" id="select-all-checkbox" class="h-5 w-5 rounded border-gray-300 text-primary focus:ring-primary focus:ring-offset-0">
-                        <label for="select-all-checkbox" class="ml-4 font-semibold text-text-primary cursor-pointer">Select All Visible</label>
+                        <label for="select-all-checkbox" class="ml-4 font-semibold text-text-primary cursor-pointer text-sm">Select All Visible</label>
                     </div>
                     <ul id="student-list" class="divide-y divide-border">
                         ${data.map(s => `
@@ -395,7 +395,7 @@ function runVCFGenerator(container, user, { logActivity }) {
                                 <label class="flex items-center p-4 hover:bg-gray-50 cursor-pointer transition-colors duration-150">
                                     <input type="checkbox" data-roll="${s.roll}" class="h-5 w-5 rounded border-gray-300 text-primary focus:ring-primary focus:ring-offset-0 mr-4 shrink-0" ${selectedStudents.has(s.roll) ? 'checked' : ''}>
                                     <div class="flex-grow flex flex-col sm:flex-row sm:items-center sm:justify-between min-w-0">
-                                        <p class="font-medium text-text-primary truncate mr-4">${s.name}</p>
+                                        <p class="font-medium text-text-primary truncate mr-4 text-sm">${s.name}</p>
                                         <p class="text-sm text-text-secondary font-mono shrink-0">${s.roll}</p>
                                     </div>
                                 </label>
@@ -436,7 +436,7 @@ function runVCFGenerator(container, user, { logActivity }) {
                 </button>
                 <div>
                     <h2 class="text-2xl font-semibold text-text-primary">Paste Roll Numbers</h2>
-                    <p class="text-text-secondary">Quickly generate a VCF from a list of roll numbers.</p>
+                    <p class="text-text-secondary">Step 2 of 2: Paste list and validate</p>
                 </div>
             </div>
          

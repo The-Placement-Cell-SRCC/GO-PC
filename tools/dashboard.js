@@ -27,7 +27,8 @@ const tool = {
                      <!-- NEW: Quick Actions -->
                      <div>
                         <h2 class="text-2xl font-bold text-text-primary mb-4">Quick Actions</h2>
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <!-- MODIFICATION: Changed md:grid-cols-3 to md:grid-cols-2 -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <a href="#" data-tool-link="vcf-generator" class="action-card !max-w-none">
                                 <i data-lucide="contact" class="w-10 h-10 text-primary mb-3"></i>
                                 <h3 class="text-xl font-semibold mb-1 text-text-primary">VCF Generator</h3>
@@ -44,14 +45,7 @@ const tool = {
                                     Go to Tool <i data-lucide="arrow-right" class="w-4 h-4 ml-1"></i>
                                 </div>
                             </a>
-                            <a href="#" data-tool-link="analytics" class="action-card !max-w-none">
-                                <i data-lucide="bar-chart-3" class="w-10 h-10 text-primary mb-3"></i>
-                                <h3 class="text-xl font-semibold mb-1 text-text-primary">Analytics</h3>
-                                <p class="text-text-secondary text-sm flex-grow">View user activity logs.</p>
-                                <div class="text-sm text-primary font-semibold mt-4 flex items-center group-hover:gap-2 transition-all">
-                                    Go to Tool <i data-lucide="arrow-right" class="w-4 h-4 ml-1"></i>
-                                </div>
-                            </a>
+                            <!-- MODIFICATION: Removed Analytics card -->
                         </div>
                      </div>
 
@@ -69,8 +63,7 @@ const tool = {
                                     </div>
                                 </div>
                                 <div>
-                                    <span class="stat-value" data-target="775">0</span>+
-                                    <span class="stat-trend text-green-500">↑ 12% vs last month</span>
+                                    <span class="stat-value" data-target="1725">0</span>
                                 </div>
                             </div>
 
@@ -83,22 +76,22 @@ const tool = {
                                     </div>
                                 </div>
                                 <div>
-                                    <span class="stat-value" data-target="3">0</span>
+                                    <span class="stat-value" data-target="2">0</span>
                                     <span class="stat-trend text-gray-500">All systems operational</span>
                                 </div>
                             </div>
 
-                            <!-- Success Rate Card -->
+                            <!-- MODIFICATION: Renamed Card -->
                             <div class="stat-card">
                                 <div class="flex justify-between items-center mb-4">
-                                    <p class="stat-label">Success Rate</p>
+                                    <p class="stat-label">Recent Updates</p>
                                     <div class="p-2 bg-warning-amber/10 rounded-lg">
                                         <i data-lucide="zap" class="w-5 h-5 text-warning-amber"></i>
                                     </div>
                                 </div>
                                 <div>
-                                    <span class="stat-value" data-target="94">0</span>%
-                                    <span class="stat-trend text-green-500">↑ 2.1% vs last week</span>
+                                    <span></span>
+                                    <span class="stat-trend text-gray-500">Added CV Sorter</span>
                                 </div>
                             </div>
                         </div>
@@ -159,4 +152,3 @@ const tool = {
 };
 
 export { tool };
-

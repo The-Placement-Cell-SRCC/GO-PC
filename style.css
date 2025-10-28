@@ -65,6 +65,7 @@ textarea.input-field {
 }
 
 /* --- Sidebar --- */
+/* MODIFICATION: Reverted to original icon-next-to-text layout */
 .nav-item {
      @apply flex items-center w-full text-left px-3 py-2.5 rounded-lg text-sm transition-all duration-200 text-gray-400;
      @apply hover:bg-white/5 hover:text-white;
@@ -73,11 +74,14 @@ textarea.input-field {
     @apply bg-primary font-semibold text-white shadow-lg;
 }
 .nav-item .lucide {
+    /* MODIFICATION: Reverted to original margin-right */
     @apply w-5 h-5 mr-3 shrink-0 transition-all duration-300 ease-in-out;
 }
 .nav-item-text {
+    /* MODIFICATION: Reverted to original text style */
     @apply whitespace-nowrap transition-opacity duration-300 ease-in-out;
 }
+
 
 /* --- NEW: Collapsed Sidebar Styles --- */
 #app-screen.sidebar-collapsed #sidebar {
@@ -92,9 +96,11 @@ textarea.input-field {
     @apply lg:opacity-0 lg:hidden; /* Hide text */
 }
 #app-screen.sidebar-collapsed .nav-item {
+    /* MODIFICATION: Reverted to simple centering for icon */
     @apply lg:justify-center; /* Center icons */
 }
 #app-screen.sidebar-collapsed .nav-item .lucide {
+    /* MODIFICATION: Reverted to original collapsed margin */
     @apply lg:mr-0;
 }
 #app-screen.sidebar-collapsed #user-profile-card {
@@ -103,9 +109,12 @@ textarea.input-field {
 #app-screen.sidebar-collapsed #user-avatar {
     @apply lg:mx-auto;
 }
+/* MODIFICATION: Removed CSS rotation, as JS now handles the icon swap */
+/*
 #app-screen.sidebar-collapsed #collapse-btn .lucide {
-    @apply lg:rotate-180; /* Rotate chevron */
+    @apply lg:rotate-180;
 }
+*/
 
 /* --- Specific Component Styles --- */
 /* Dashboard: Welcome Banner */
