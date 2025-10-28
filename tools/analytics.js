@@ -3,7 +3,7 @@ import { collection, query, orderBy, getDocs } from "https://www.gstatic.com/fir
 
 const tool = {
     name: 'Analytics',
-    icon: `<svg class="w-5 h-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>`,
+    icon: 'bar-chart-3', // Lucide icon name
     render: () => ({
         html: `<div id="analytics-content"><div class="flex items-center justify-center min-h-[70vh]"><div class="loader"></div><p class="ml-4 text-text-secondary">Loading Activity Logs...</p></div></div>`
     }),
@@ -18,49 +18,114 @@ const tool = {
 
         try {
             const logsRef = collection(db, "activity_logs");
-            // Query logs, ordered by timestamp descending
             const q = query(logsRef, orderBy("timestamp", "desc"));
             const querySnapshot = await getDocs(q);
 
-            let logHtml = `
-                <div class="bg-surface p-6 md:p-8 rounded-xl shadow-sm border border-border page-enter">
-                    <h1 class="text-3xl font-bold mb-6 text-text-primary">Activity Logs</h1>
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left table-auto">
-                            <thead class="bg-gray-50">
-                                <tr>
-                                    <th class="p-4 font-semibold text-sm uppercase text-text-secondary tracking-wider">User</th>
-                                    <th class="p-4 font-semibold text-sm uppercase text-text-secondary tracking-wider">Action</th>
-                                    <th class="p-4 font-semibold text-sm uppercase text-text-secondary tracking-wider">Timestamp</th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-border">`;
+            // --- NEW: Analytics Data Processing ---
+            const logs = [];
+            const userSet = new Set();
+            const actionMap = new Map();
+            let mostCommonAction = { action: 'N/A', count: 0 };
 
-            if (querySnapshot.empty) {
+            querySnapshot.forEach((doc) => {
+                const log = doc.data();
+                logs.push(log); // Store log for table rendering
+
+                // Calculate stats
+                userSet.add(log.userEmail);
+                const newCount = (actionMap.get(log.action) || 0) + 1;
+                actionMap.set(log.action, newCount);
+
+                if (newCount > mostCommonAction.count) {
+                    mostCommonAction = { action: log.action, count: newCount };
+                }
+            });
+            // --- End Analytics Data Processing ---
+
+            let logHtml = `
+                <div class="page-enter space-y-8">
+                    <!-- NEW: Stat Cards -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div class="stat-card-lg">
+                            <div class="flex items-center gap-4">
+                                <div class="p-3 bg-primary/10 rounded-lg">
+                                    <i data-lucide="database" class="w-6 h-6 text-primary"></i>
+                                </div>
+                                <div>
+                                    <p class="text-sm text-text-secondary font-medium">Total Log Entries</p>
+                                    <p class="text-3xl font-bold text-text-primary">${querySnapshot.size}</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="stat-card-lg">
+                            <div class="flex items-center gap-4">
+                                <div class="p-3 bg-secondary/10 rounded-lg">
+                                    <i data-lucide="users" class="w-6 h-6 text-secondary"></i>
+                                </div>
+                                <div>
+                                    <p class="text-sm text-text-secondary font-medium">Unique Users</p>
+                                    <p class="text-3xl font-bold text-text-primary">${userSet.size}</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="stat-card-lg">
+                            <div class="flex items-center gap-4">
+                                <div class="p-3 bg-warning-amber/10 rounded-lg">
+                                    <i data-lucide="activity" class="w-6 h-6 text-warning-amber"></i>
+                                </div>
+                                <div>
+                                    <p class="text-sm text-text-secondary font-medium">Most Common Action</p>
+                                    <p class="text-xl font-bold text-text-primary truncate" title="${mostCommonAction.action}">${mostCommonAction.action}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Log Table -->
+                    <div class="bg-surface p-6 md:p-8 rounded-xl shadow-sm border border-border">
+                        <div class="flex items-center gap-3 mb-6">
+                            <i data-lucide="history" class="w-7 h-7 text-primary"></i>
+                            <h1 class="text-3xl font-bold text-text-primary">Full Activity Log</h1>
+                        </div>
+                        <div class="overflow-x-auto border border-border rounded-lg">
+                            <table class="styled-table table-zebra">
+                                <thead>
+                                    <tr>
+                                        <th>User</th>
+                                        <th>Action</th>
+                                        <th>Timestamp</th>
+                                    </tr>
+                                </thead>
+                                <tbody>`;
+
+            if (logs.length === 0) {
                 logHtml += `<tr><td colspan="3" class="p-4 text-center text-text-secondary">No activity logs found.</td></tr>`;
             } else {
-                querySnapshot.forEach((doc, index) => {
-                    const log = doc.data();
-                    // Format timestamp nicely, handle potential missing timestamp
+                // Use the pre-processed 'logs' array
+                logs.forEach((log, index) => {
                     const timestamp = log.timestamp?.toDate()
                         ? log.timestamp.toDate().toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' })
                         : 'N/A';
-                    // Apply stagger animation delay
+                    // Stagger animation removed for performance on potentially large logs
                     logHtml += `
-                        <tr class="hover:bg-gray-50 stagger-item" style="--stagger-delay: ${index * 50}ms">
-                            <td class="p-4 text-sm text-text-primary truncate" title="${log.userEmail}">${log.userEmail}</td>
-                            <td class="p-4 text-sm text-text-secondary">${log.action}</td>
-                            <td class="p-4 text-sm text-gray-500 whitespace-nowrap">${timestamp}</td>
+                        <tr>
+                            <td class="text-text-primary truncate" title="${log.userEmail}">${log.userEmail}</td>
+                            <td class="text-text-secondary">${log.action}</td>
+                            <td class="text-gray-500 whitespace-nowrap">${timestamp}</td>
                         </tr>`;
                 });
             }
 
             logHtml += `
-                            </tbody>
-                        </table>
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>`;
+            
             container.innerHTML = logHtml;
+            // Initialize icons after rendering
+            lucide.createIcons();
         } catch (error) {
             console.error("Error fetching activity logs:", error);
             container.innerHTML = `<div class="bg-error/10 text-error p-4 rounded-lg"><strong>Error:</strong> Could not load activity logs. ${error.message}</div>`;
@@ -69,3 +134,4 @@ const tool = {
 };
 
 export { tool };
+
