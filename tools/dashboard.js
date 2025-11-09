@@ -46,13 +46,6 @@ const tool = {
                             <h3 class="mt-4 font-semibold text-text-primary">System Analytics</h3>
                             <p class="mt-1 text-sm text-text-secondary">View usage statistics and system health.</p>
                         </a>
-                        <a href="#" data-tool-link="profile" class="action-card">
-                            <div class="flex items-center justify-center w-12 h-12 bg-primary/10 rounded-lg">
-                                <i data-lucide="user-cog" class="w-6 h-6 text-primary"></i>
-                            </div>
-                            <h3 class="mt-4 font-semibold text-text-primary">Profile & Settings</h3>
-                            <p class="mt-1 text-sm text-text-secondary">Manage your account and application settings.</p>
-                        </a>
                     </div>
 
                     <!-- Recent Activity -->
@@ -65,7 +58,6 @@ const tool = {
                             </div>
                         </div>
                     </div>
-
                 </div>
             `
         };
