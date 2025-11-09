@@ -7,6 +7,7 @@ import { tool as dashboardTool } from '/tools/dashboard.js';
 import { tool as vcfGeneratorTool } from '/tools/vcf-generator.js';
 import { tool as cvSorterTool } from '/tools/cv-sorter.js';
 import { tool as analyticsTool } from '/tools/analytics.js';
+import { tool as profileTool } from '/tools/profile.js';
 
 // =================================================================================
 // --- 🔒 CONFIGURATION & SECURITY 🔒 ---
@@ -34,6 +35,7 @@ const tools = {
     'vcf-generator': vcfGeneratorTool,
     'cv-sorter': cvSorterTool,
     'analytics': analyticsTool,
+    'profile': profileTool,
 };
 
 
