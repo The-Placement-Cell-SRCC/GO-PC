@@ -1,8 +1,11 @@
+import { collection, query, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+import { formatDistanceToNow } from 'https://cdn.jsdelivr.net/npm/date-fns@3.6.0/+esm';
+
+
 const tool = {
     name: 'Dashboard',
-    icon: 'layout-grid', // Lucide icon name
+    icon: 'layout-grid',
     render: (user) => {
-        // Function to determine the time-based greeting
         function getGreeting() {
             const hour = new Date().getHours();
             if (hour < 12) return "Good Morning";
@@ -11,131 +14,109 @@ const tool = {
         }
         const firstName = user.displayName.split(' ')[0];
 
-        // UPDATED: HTML structure for the new UI
         return {
             html: `
-                <div id="dashboard-content" class="page-enter space-y-8">
-                     
-                    <!-- Welcome Banner (styles will update from style.css) -->
-                    <div class="welcome-banner">
-                        <div class="relative z-10">
-                            <h1 class="text-3xl font-bold mb-2">${getGreeting()}, ${firstName}!</h1>
-                            <p class="text-lg text-blue-100">Welcome to the GO-PC Dashboard. Access your tools below.</p>
-                        </div>
-                        <i data-lucide="rocket" class="absolute -right-4 -bottom-8 w-40 h-40 text-black/10 transform rotate-[-30deg] z-0"></i>
-                    </div>
-
-                     <!-- Quick Actions (UPDATED to be simpler cards) -->
-                     <div>
-                        <h2 class="text-2xl font-bold text-text-primary mb-4">Quick Actions</h2>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            
-                            <a href="#" data-tool-link="vcf-generator" class="stat-card group !flex-row items-center gap-4">
-                                <div class="p-3 bg-primary/10 rounded-lg">
-                                    <i data-lucide="contact" class="w-6 h-6 text-primary"></i>
-                                </div>
-                                <div class="flex-1">
-                                    <h3 class="text-lg font-semibold text-text-primary group-hover:text-primary transition-colors">VCF Generator</h3>
-                                    <p class="text-sm text-text-secondary">Create vCard files from student lists.</p>
-                                </div>
-                                <i data-lucide="arrow-right" class="w-5 h-5 text-text-secondary group-hover:text-primary transition-all group-hover:translate-x-1"></i>
-                            </a>
-                            
-                            <a href="#" data-tool-link="cv-sorter" class="stat-card group !flex-row items-center gap-4">
-                                <div class="p-3 bg-primary/10 rounded-lg">
-                                    <i data-lucide="folder-search" class="w-6 h-6 text-primary"></i>
-                                </div>
-                                <div class="flex-1">
-                                    <h3 class="text-lg font-semibold text-text-primary group-hover:text-primary transition-colors">CV Sorter</h3>
-                                    <p class="text-sm text-text-secondary">Sort & export CVs in bulk.</p>
-                                </div>
-                                <i data-lucide="arrow-right" class="w-5 h-5 text-text-secondary group-hover:text-primary transition-all group-hover:translate-x-1"></i>
-                            </a>
-                            
-                        </div>
-                     </div>
-
-                     <!-- Statistics Cards -->
+                <div class="space-y-8">
+                    <!-- Header -->
                     <div>
-                        <h2 class="text-2xl font-bold text-text-primary mb-4">Workspace Snapshot</h2>
-                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            
-                            <!-- Students Connected Card -->
-                            <div class="stat-card-lg">
-                                <div class="flex items-center gap-4">
-                                    <div class="p-3 bg-primary/10 rounded-lg">
-                                        <i data-lucide="users" class="w-6 h-6 text-primary"></i>
-                                    </div>
-                                    <div>
-                                        <p class="text-sm text-text-secondary font-medium">Students Connected</p>
-                                        <p class="text-3xl font-bold text-text-primary" data-target="1725">0</p>
-                                    </div>
-                                </div>
-                            </div>
+                        <h1 class="text-3xl font-bold text-text-primary">${getGreeting()}, ${firstName}</h1>
+                        <p class="text-text-secondary mt-1">Here’s what’s happening with your workspace today.</p>
+                    </div>
 
-                            <!-- Active Tools Card -->
-                            <div class="stat-card-lg">
-                                <div class="flex items-center gap-4">
-                                    <div class="p-3 bg-success/10 rounded-lg">
-                                        <i data-lucide="terminal-square" class="w-6 h-6 text-success"></i>
-                                    </div>
-                                    <div>
-                                        <p class="text-sm text-text-secondary font-medium">Active Tools</p>
-                                        <p class="text-3xl font-bold text-text-primary" data-target="2">0</p>
-                                    </div>
-                                </div>
+                    <!-- Quick Actions -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                        <a href="#" data-tool-link="vcf-generator" class="action-card">
+                             <div class="flex items-center justify-center w-12 h-12 bg-primary/10 rounded-lg">
+                                <i data-lucide="contact" class="w-6 h-6 text-primary"></i>
                             </div>
+                            <h3 class="mt-4 font-semibold text-text-primary">VCF Generator</h3>
+                            <p class="mt-1 text-sm text-text-secondary">Create shareable contact files from spreadsheets.</p>
+                        </a>
+                         <a href="#" data-tool-link="cv-sorter" class="action-card">
+                             <div class="flex items-center justify-center w-12 h-12 bg-primary/10 rounded-lg">
+                                <i data-lucide="users" class="w-6 h-6 text-primary"></i>
+                            </div>
+                            <h3 class="mt-4 font-semibold text-text-primary">CV Sorter</h3>
+                            <p class="mt-1 text-sm text-text-secondary">Sort and categorize CVs based on custom criteria.</p>
+                        </a>
+                        <a href="#" data-tool-link="analytics" class="action-card">
+                            <div class="flex items-center justify-center w-12 h-12 bg-primary/10 rounded-lg">
+                                <i data-lucide="bar-chart-3" class="w-6 h-6 text-primary"></i>
+                            </div>
+                            <h3 class="mt-4 font-semibold text-text-primary">System Analytics</h3>
+                            <p class="mt-1 text-sm text-text-secondary">View usage statistics and system health.</p>
+                        </a>
+                        <a href="#" data-tool-link="profile" class="action-card">
+                            <div class="flex items-center justify-center w-12 h-12 bg-primary/10 rounded-lg">
+                                <i data-lucide="user-cog" class="w-6 h-6 text-primary"></i>
+                            </div>
+                            <h3 class="mt-4 font-semibold text-text-primary">Profile & Settings</h3>
+                            <p class="mt-1 text-sm text-text-secondary">Manage your account and application settings.</p>
+                        </a>
+                    </div>
 
-                            <!-- Recent Updates Card -->
-                            <div class="stat-card-lg">
-                                <div class="flex items-center gap-4">
-                                    <div class="p-3 bg-warning/10 rounded-lg">
-                                        <i data-lucide="zap" class="w-6 h-6 text-warning"></i>
-                                    </div>
-                                    <div>
-                                        <p class="text-sm text-text-secondary font-medium">Recent Updates</p>
-                                        <p class="text-base font-semibold text-text-primary pt-1">Added CV Sorter</p>
-                                    </div>
-                                </div>
+                    <!-- Recent Activity -->
+                    <div>
+                        <h2 class="text-xl font-bold text-text-primary mb-4">Recent Activity</h2>
+                        <div id="activity-log-container" class="bg-surface rounded-lg border border-border">
+                            <div class="p-8 text-center text-text-secondary">
+                                <div class="loader inline-block"></div>
+                                <p class="mt-3">Loading activity...</p>
                             </div>
                         </div>
                     </div>
+
                 </div>
             `
-        }
+        };
     },
-    onMount: (contentElement, user, dependencies) => {
-        const dashboardContent = contentElement.querySelector('#dashboard-content');
-        
-        // Animate counters
-        dashboardContent?.querySelectorAll('.stat-value[data-target], .text-3xl[data-target]').forEach(el => {
-            const target = +el.dataset.target;
-            if (isNaN(target)) return; 
+    onMount: async (contentElement, user, dependencies) => {
+        const { db } = dependencies;
+        const activityLogContainer = contentElement.querySelector('#activity-log-container');
 
-            let current = 0;
-            const duration = 1000; 
-            const stepTime = 20; 
-            const steps = duration / stepTime;
-            const increment = target / steps;
+        // --- Fetch and Display Activity Logs ---
+        async function fetchActivityLogs() {
+            try {
+                const logsQuery = query(collection(db, "activity_logs"), orderBy("timestamp", "desc"), limit(10));
+                const querySnapshot = await getDocs(logsQuery);
 
-            const updateCounter = () => {
-                current += increment;
-                if (current >= target) {
-                    el.textContent = target.toLocaleString(); // Add commas
-                    clearInterval(interval);
-                } else {
-                     el.textContent = Math.ceil(current).toLocaleString(); 
+                if (querySnapshot.empty) {
+                    activityLogContainer.innerHTML = `<div class="p-4 text-center text-text-secondary">No recent activity found.</div>`;
+                    return;
                 }
-            };
-           const interval = setInterval(updateCounter, stepTime);
-        });
 
-        // Add event listeners for Quick Action links
-        dashboardContent?.querySelectorAll('a[data-tool-link]').forEach(link => {
+                let html = '<ul class="divide-y divide-border">';
+                querySnapshot.forEach(doc => {
+                    const log = doc.data();
+                    const timestamp = log.timestamp ? log.timestamp.toDate() : new Date();
+                    const timeAgo = formatDistanceToNow(timestamp, { addSuffix: true });
+
+                    html += `
+                        <li class="p-4 flex items-center justify-between">
+                            <div>
+                                <p class="font-medium text-text-primary">${log.action}</p>
+                                <p class="text-sm text-text-secondary">${log.userEmail}</p>
+                            </div>
+                            <span class="text-sm text-text-secondary">${timeAgo}</span>
+                        </li>
+                    `;
+                });
+                html += '</ul>';
+                activityLogContainer.innerHTML = html;
+
+            } catch (error) {
+                console.error("Error fetching activity logs:", error);
+                activityLogContainer.innerHTML = `<div class="p-4 text-center text-error">Could not load activity logs.</div>`;
+            }
+        }
+
+        fetchActivityLogs();
+
+        // --- Handle Quick Action Clicks ---
+        contentElement.querySelectorAll('a[data-tool-link]').forEach(link => {
             link.addEventListener('click', (e) => {
                 e.preventDefault();
                 const toolKey = link.dataset.toolLink;
-                // Find the nav link in the sidebar and click it
                 const navLink = document.querySelector(`#tool-nav a[data-tool="${toolKey}"]`);
                 if (navLink) {
                     navLink.click();
@@ -144,9 +125,6 @@ const tool = {
                 }
             });
         });
-
-        // Initialize Lucide icons
-        lucide.createIcons();
     }
 };
 

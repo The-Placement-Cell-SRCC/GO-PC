@@ -1,9 +1,6 @@
-// NO CHANGES REQUIRED
-// This tool's HTML structure is already modular and will
-// inherit the new styles from style.css automatically.
 const tool = {
     name: 'VCF Generator',
-    icon: 'contact', // Lucide icon name
+    icon: 'contact',
     render: () => ({
         html: `<div id="vcf-generator-content" class="page-enter"><div class="flex items-center justify-center min-h-[70vh]"><div class="loader"></div><p class="ml-4 text-text-secondary">Loading Student Data...</p></div></div>`
     }),
@@ -314,45 +311,34 @@ function runVCFGenerator(container, user, { logActivity }) {
     // STEP 1: Method Selection
     function getMethodSelectionHtml(count) {
         return `
-            <div class="flex flex-col items-center justify-center min-h-[70vh]">
-                <!-- Header -->
-                <div class="text-center">
-                    <div class="w-16 h-16 bg-primary/10 text-primary flex items-center justify-center rounded-2xl mb-4 mx-auto">
-                        <i data-lucide="contact" class="w-8 h-8"></i>
+            <div class="space-y-8">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <h1 class="text-3xl font-bold text-text-primary">VCF Generator</h1>
+                        <p class="text-text-secondary mt-1">Create vCard files from the student contact list.</p>
                     </div>
-                    <h1 class="text-3xl font-bold text-text-primary">VCF Generator</h1>
-                    <p class="text-lg text-text-secondary mt-1">Create vCard files from the student contact list.</p>
-                </div>
-                
-                <!-- Refresh Button -->
-                <div class="absolute top-0 right-0 p-4">
-                    <button id="refresh-csv-btn" title="Reload data" class="button-secondary px-3 h-10">
+                     <button id="refresh-csv-btn" title="Reload data" class="button-secondary">
                         <i data-lucide="refresh-cw" class="w-4 h-4 mr-2"></i>
-                        <span class="text-sm font-semibold">Refresh CSV</span>
+                        <span>Refresh CSV</span>
                     </button>
                 </div>
 
-                <!-- Action Cards -->
-                <div class="flex flex-col md:flex-row gap-8 mt-12">
-                    <button id="select-from-list-btn" class="action-card">
-                        <i data-lucide="list-checks" class="w-10 h-10 text-primary mb-4"></i>
-                        <h3 class="text-2xl font-semibold mb-2 text-text-primary">Select from List</h3>
-                        <p class="text-text-secondary flex-grow">Browse and select students from the complete list.</p>
-                        <div class="flex justify-between items-center text-sm mt-6 pt-4 border-t border-border">
-                            <span class="text-xs font-medium bg-primary/10 text-primary py-1 px-2 rounded-full">Best for: Selective generation</span>
-                            <span class="text-text-secondary font-medium">${count} students</span>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <button id="select-from-list-btn" class="action-card text-left">
+                        <div class="flex items-center justify-center w-12 h-12 bg-primary/10 rounded-lg">
+                            <i data-lucide="list-checks" class="w-6 h-6 text-primary"></i>
                         </div>
-                        <i data-lucide="arrow-right" class="opacity-0 group-hover:opacity-100 transition-all w-6 h-6 text-primary absolute bottom-8 right-8 group-hover:translate-x-1 duration-200"></i>
+                        <h3 class="mt-4 font-semibold text-text-primary">Select from List</h3>
+                        <p class="mt-1 text-sm text-text-secondary flex-grow">Browse and select students from the complete list of ${count} records.</p>
+                        <span class="mt-4 text-sm font-semibold text-primary group-hover:underline">Choose this method &rarr;</span>
                     </button>
-                    <button id="paste-rolls-btn" class="action-card">
-                        <i data-lucide="clipboard-paste" class="w-10 h-10 text-primary mb-4"></i>
-                        <h3 class="text-2xl font-semibold mb-2 text-text-primary">Paste Roll Numbers</h3>
-                        <p class="text-text-secondary flex-grow">Quickly paste a list of roll numbers for bulk generation.</p>
-                        <div class="flex justify-between items-center text-sm mt-6 pt-4 border-t border-border">
-                            <span class="text-xs font-medium bg-primary/10 text-primary py-1 px-2 rounded-full">Best for: Quick bulk operations</span>
-                            <span class="text-text-secondary font-medium">Faster for large batches</span>
+                    <button id="paste-rolls-btn" class="action-card text-left">
+                        <div class="flex items-center justify-center w-12 h-12 bg-primary/10 rounded-lg">
+                            <i data-lucide="clipboard-paste" class="w-6 h-6 text-primary"></i>
                         </div>
-                        <i data-lucide="arrow-right" class="opacity-0 group-hover:opacity-100 transition-all w-6 h-6 text-primary absolute bottom-8 right-8 group-hover:translate-x-1 duration-200"></i>
+                        <h3 class="mt-4 font-semibold text-text-primary">Paste Roll Numbers</h3>
+                        <p class="mt-1 text-sm text-text-secondary flex-grow">Quickly paste a list of roll numbers for bulk generation.</p>
+                        <span class="mt-4 text-sm font-semibold text-primary group-hover:underline">Choose this method &rarr;</span>
                     </button>
                 </div>
             </div>`;
@@ -361,68 +347,51 @@ function runVCFGenerator(container, user, { logActivity }) {
     // STEP 2: Select from List
     function getSelectListHtml(data) {
         return `
-        <div class="bg-surface rounded-xl shadow-sm border border-border">
-            <!-- Header -->
-            <div class="flex flex-col md:flex-row justify-between md:items-center gap-4 p-6 md:p-8 border-b border-border">
-                <div class="flex items-center gap-4">
-                     <button id="back-to-selection-btn" class="button-secondary !h-10 !w-10 !p-0 rounded-full hover:bg-gray-100">
-                        <i data-lucide="arrow-left" class="w-5 h-5"></i>
-                    </button>
+        <div class="bg-surface rounded-xl border border-border">
+            <div class="p-6 border-b border-border">
+                 <div class="flex items-center gap-4">
+                    <button id="back-to-selection-btn" class="button-secondary !p-2 !h-9 !w-9"><i data-lucide="arrow-left" class="w-5 h-5"></i></button>
                     <div>
-                        <h2 class="text-2xl font-semibold text-text-primary">Select from List</h2>
-                        <p class="text-text-secondary">Step 2 of 2: Choose students to include</p>
+                        <h2 class="text-xl font-semibold text-text-primary">Select from List</h2>
+                        <p class="text-sm text-text-secondary">Choose students to include in the VCF file.</p>
                     </div>
-                </div>
-                <div class-id="filter-container" class="relative">
-                    <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                        <i data-lucide="search" class="w-5 h-5 text-text-secondary"></i>
-                    </div>
-                    <input type="text" id="student-search" placeholder="Filter by name or roll number..." class="input-field pl-12 !h-11 w-full md:w-64">
                 </div>
             </div>
-
-            <!-- List Content -->
-            <div class="p-6 md:p-8">
-                <div id="filter-count" class="h-11 bg-background border border-border rounded-lg flex items-center px-4 text-text-secondary font-medium mb-4 text-sm">
-                    Showing ${data.length} of ${data.length} students
+            <div class="p-6">
+                <div class="relative mb-4">
+                    <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-text-secondary"></i>
+                    <input type="text" id="student-search" placeholder="Filter by name or roll..." class="input-field pl-10">
                 </div>
-                <!-- Student List -->
-                <div class="h-[45vh] overflow-y-auto border border-border rounded-lg bg-white">
-                    <div class="flex items-center p-4 border-b border-border sticky top-0 bg-surface z-10">
-                        <input type="checkbox" id="select-all-checkbox" class="h-5 w-5 rounded border-gray-300 text-primary focus:ring-primary focus:ring-offset-0">
-                        <label for="select-all-checkbox" class="ml-4 font-semibold text-text-primary cursor-pointer text-sm">Select All Visible</label>
-                    </div>
-                    <ul id="student-list" class="divide-y divide-border">
-                        ${data.map(s => `
-                            <li class="student-item" data-name="${s.name}" data-roll="${s.roll}">
-                                <label class="flex items-center p-4 hover:bg-gray-50 cursor-pointer transition-colors duration-150">
-                                    <input type="checkbox" data-roll="${s.roll}" class="h-5 w-5 rounded border-gray-300 text-primary focus:ring-primary focus:ring-offset-0 mr-4 shrink-0" ${selectedStudents.has(s.roll) ? 'checked' : ''}>
-                                    <div class="flex-grow flex flex-col sm:flex-row sm:items-center sm:justify-between min-w-0">
-                                        <p class="font-medium text-text-primary truncate mr-4 text-sm">${s.name}</p>
-                                        <p class="text-sm text-text-secondary font-mono shrink-0">${s.roll}</p>
-                                    </div>
-                                </label>
-                            </li>
-                        `).join('')}
-                         ${data.length === 0 ? '<li class="p-4 text-center text-text-secondary">No student data loaded.</li>' : ''}
-                    </ul>
+                <div id="filter-count" class="text-sm text-text-secondary mb-2">Showing ${data.length} of ${data.length} students</div>
+                <div class="h-[40vh] overflow-y-auto border border-border rounded-lg">
+                    <table class="styled-table w-full">
+                        <thead class="sticky top-0 bg-surface">
+                            <tr>
+                                <th class="w-12"><input type="checkbox" id="select-all-checkbox" class="input-checkbox"></th>
+                                <th>Name</th>
+                                <th>Roll Number</th>
+                            </tr>
+                        </thead>
+                        <tbody id="student-list">
+                            ${data.map(s => `
+                                <tr class="student-item" data-name="${s.name}" data-roll="${s.roll}">
+                                    <td><input type="checkbox" data-roll="${s.roll}" class="input-checkbox" ${selectedStudents.has(s.roll) ? 'checked' : ''}></td>
+                                    <td class="font-medium text-text-primary">${s.name}</td>
+                                    <td class="font-mono text-text-secondary">${s.roll}</td>
+                                </tr>`).join('')}
+                        </tbody>
+                    </table>
                 </div>
             </div>
-            
-            <!-- Generation Area -->
-            <div class="border-t border-border p-6 md:p-8 mt-2 space-y-4 bg-background rounded-b-xl">
-                <h3 class="text-xl font-semibold text-text-primary">Configuration & Export</h3>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div class="space-y-1 md:col-span-2">
-                        <label for="suffix-input" class="font-semibold text-text-primary text-sm">Suffix (Optional)</label>
-                        <input type="text" id="suffix-input" placeholder="e.g., Placement 2025" class="input-field">
-                        <p class="text-xs text-text-secondary mt-1">Added as: <code class="text-xs">[Name] || [Roll] || [Suffix]</code></p>
+            <div class="p-6 bg-background/50 border-t border-border rounded-b-xl">
+                 <div class="grid md:grid-cols-3 gap-4 items-end">
+                    <div class="md:col-span-2">
+                        <label for="suffix-input" class="text-sm font-medium text-text-primary">Suffix (Optional)</label>
+                        <input type="text" id="suffix-input" placeholder="e.g., Placement 2025" class="input-field mt-1">
                     </div>
-                    <div class="space-y-1 md:self-end">
-                        <button id="generate-vcf-btn" disabled class="button-primary w-full">
-                            Generate VCF File
-                        </button>
-                    </div>
+                    <button id="generate-vcf-btn" disabled class="button-primary w-full">
+                        <i data-lucide="download" class="w-5 h-5 mr-2"></i>Generate VCF
+                    </button>
                 </div>
             </div>
         </div>`;
@@ -431,63 +400,44 @@ function runVCFGenerator(container, user, { logActivity }) {
     // STEP 2: Paste Roll Numbers
     function getPasteRollsHtml() {
          return `
-         <div class="bg-surface rounded-xl shadow-sm border border-border">
-            <!-- Header -->
-            <div class="flex items-center gap-4 p-6 md:p-8 border-b border-border">
-                 <button id="back-to-selection-btn" class="button-secondary !h-10 !w-10 !p-0 rounded-full hover:bg-gray-100">
-                    <i data-lucide="arrow-left" class="w-5 h-5"></i>
-                </button>
+         <div class="bg-surface rounded-xl border border-border">
+            <div class="p-6 border-b border-border">
+                <div class="flex items-center gap-4">
+                    <button id="back-to-selection-btn" class="button-secondary !p-2 !h-9 !w-9"><i data-lucide="arrow-left" class="w-5 h-5"></i></button>
+                    <div>
+                        <h2 class="text-xl font-semibold text-text-primary">Paste Roll Numbers</h2>
+                        <p class="text-sm text-text-secondary">Paste a list of roll numbers for bulk generation.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="p-6 grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <div>
-                    <h2 class="text-2xl font-semibold text-text-primary">Paste Roll Numbers</h2>
-                    <p class="text-text-secondary">Step 2 of 2: Paste list and validate</p>
-                </div>
-            </div>
-         
-            <!-- Content -->
-             <div class="p-6 md:p-8 grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <!-- Left Panel: Text Input -->
-                <div class="space-y-4">
-                     <div class="flex justify-between items-center">
-                        <label for="roll-numbers-textarea" class="font-semibold text-text-primary">Roll Numbers</label>
-                        <button id="paste-from-clipboard-btn" class="button-secondary px-3 h-9 text-sm">
-                            <i data-lucide="clipboard-paste" class="w-4 h-4 mr-2"></i> Paste
+                    <div class="flex justify-between items-center mb-2">
+                         <label for="roll-numbers-textarea" class="text-sm font-medium text-text-primary">Roll Number List</label>
+                         <button id="paste-from-clipboard-btn" class="button-secondary text-xs !h-7">
+                            <i data-lucide="clipboard-paste" class="w-4 h-4 mr-1.5"></i>Paste
                         </button>
                     </div>
-                    <textarea id="roll-numbers-textarea" class="input-field h-[40vh] p-4 font-mono text-sm resize-y" placeholder="24BC718\n23BC501\n22BC187..."></textarea>
+                    <textarea id="roll-numbers-textarea" class="input-field h-48 font-mono text-sm" placeholder="24BC718\n23BC501..."></textarea>
                 </div>
-                <!-- Right Panel: Validation -->
-                <div class="space-y-6">
-                    <div class="bg-background p-6 rounded-xl border border-border">
-                         <h3 class="font-semibold text-text-primary mb-4">Live Validation</h3>
-                         <div class="space-y-3">
-                            <div id="valid-count" class="badge-dot badge-dot-success">0 valid roll numbers found</div>
-                            <div id="duplicate-count" class="badge-dot badge-dot-warning">0 duplicate lines ignored</div>
-                            <div id="invalid-count" class="badge-dot badge-dot-error">0 invalid or not found</div>
-                         </div>
-                    </div>
-                    <div class="bg-blue-50 border-l-4 border-primary text-blue-800 p-4 rounded-r-lg text-sm flex items-start">
-                        <i data-lucide="info" class="w-5 h-5 mr-3 shrink-0 mt-0.5"></i>
-                        <div>
-                            <p>Invalid formats, duplicates, and non-existent roll numbers will be flagged and ignored.</p>
-                        </div>
-                    </div>
+                <div class="bg-background/50 p-4 rounded-lg">
+                     <h3 class="font-semibold text-text-primary mb-3 text-sm">Live Validation</h3>
+                     <div class="space-y-2">
+                        <div id="valid-count" class="badge-dot">0 valid roll numbers found</div>
+                        <div id="duplicate-count" class="badge-dot">0 duplicate lines ignored</div>
+                        <div id="invalid-count" class="badge-dot">0 invalid or not found</div>
+                     </div>
                 </div>
             </div>
-            
-            <!-- Generation Area -->
-            <div class="border-t border-border p-6 md:p-8 mt-2 space-y-4 bg-background rounded-b-xl">
-                <h3 class="text-xl font-semibold text-text-primary">Configuration & Export</h3>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div class="space-y-1 md:col-span-2">
-                        <label for="suffix-input" class="font-semibold text-text-primary text-sm">Suffix (Optional)</label>
-                        <input type="text" id="suffix-input" placeholder="e.g., Placement 2025" class="input-field">
-                        <p class="text-xs text-text-secondary mt-1">Added as: <code class="text-xs">[Name] || [Roll] || [Suffix]</code></p>
+            <div class="p-6 bg-background/50 border-t border-border rounded-b-xl">
+                 <div class="grid md:grid-cols-3 gap-4 items-end">
+                    <div class="md:col-span-2">
+                        <label for="suffix-input" class="text-sm font-medium text-text-primary">Suffix (Optional)</label>
+                        <input type="text" id="suffix-input" placeholder="e.g., Placement 2025" class="input-field mt-1">
                     </div>
-                    <div class="space-y-1 md:self-end">
-                        <button id="generate-vcf-btn" disabled class="button-primary w-full">
-                            Generate VCF File
-                        </button>
-                    </div>
+                    <button id="generate-vcf-btn" disabled class="button-primary w-full">
+                        <i data-lucide="download" class="w-5 h-5 mr-2"></i>Generate VCF
+                    </button>
                 </div>
             </div>
         </div>`;

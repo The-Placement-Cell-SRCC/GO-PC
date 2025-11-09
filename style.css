@@ -68,6 +68,7 @@ textarea.input-field {
 .nav-item {
      @apply flex items-center w-full text-left px-3 py-2 rounded-md text-sm transition-all duration-200 text-text-secondary;
      @apply hover:bg-white/5 hover:text-text-primary;
+     flex-wrap: nowrap;
 }
 .nav-item.active {
     @apply bg-primary font-semibold text-white;

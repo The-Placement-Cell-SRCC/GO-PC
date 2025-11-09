@@ -119,7 +119,7 @@ document.addEventListener('DOMContentLoaded', () => {
         renderView(container, `
             <div class="w-full bg-surface p-8 rounded-xl border border-border shadow-2xl">
                 <div class="flex items-center justify-center gap-3 mb-6">
-                    <img class="w-10 h-10" src="/logo.png" alt="GO-PC Logo">
+                    <img class="w-10 h-10" src="/media/logo.png" alt="GO-PC Logo">
                     <h1 class="text-2xl font-bold text-text-primary">GO-PC Login</h1>
                 </div>
                 <p class="text-text-secondary text-center mb-8 text-sm">Use your authorized Google account to access the dashboard.</p>
@@ -200,13 +200,13 @@ document.addEventListener('DOMContentLoaded', () => {
         }).join('');
 
         userProfileContainer.innerHTML = `
-            <button id="collapse-btn" class="nav-item mb-1 w-full hidden lg:flex">
+            <button id="collapse-btn" class="nav-item mb-1 w-full lg:flex">
                 <i data-lucide="chevrons-left" class="w-5 h-5 mr-3 transition-transform duration-300 ease-in-out"></i>
                 <span class="nav-item-text">Collapse</span>
             </button>
 
             <div class="border-t border-border pt-2">
-                 <div id="user-profile-card" class="flex items-center p-2 rounded-lg transition-all duration-300 ease-in-out">
+                 <div id="user-profile-card" class="flex items-center p-2 rounded-lg transition-all duration-300 ease-in-out cursor-pointer hover:bg-white/5">
                     <img id="user-avatar" src="${user.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.displayName)}&background=161B22&color=C9D1D9`}" alt="User Avatar" class="w-9 h-9 rounded-full object-cover border-2 border-border shrink-0" />
                     <div id="user-profile-info" class="ml-3 flex-1 min-w-0 nav-item-text">
                         <p class="text-sm font-semibold truncate text-text-primary" title="${user.displayName}">${user.displayName}</p>
@@ -217,6 +217,19 @@ document.addEventListener('DOMContentLoaded', () => {
                     <i data-lucide="log-out" class="w-5 h-5 mr-3"></i>
                     <span class="nav-item-text">Logout</span>
                 </button>
+
+                <div class="border-t border-border mt-2 pt-2">
+                    <div class="flex items-center justify-between p-2">
+                        <div class="flex items-center nav-item-text">
+                            <i data-lucide="sun" class="w-5 h-5 mr-3 text-text-secondary"></i>
+                            <span class="text-sm text-text-secondary">Light Mode</span>
+                        </div>
+                        <label for="theme-toggle" class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" value="" id="theme-toggle" class="sr-only peer">
+                            <div class="w-11 h-6 bg-border rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+                        </label>
+                    </div>
+                </div>
             </div>`;
         
         mainHeader.innerHTML = `
@@ -234,11 +247,44 @@ document.addEventListener('DOMContentLoaded', () => {
              signOut(auth);
         });
 
+        document.getElementById('user-profile-card').addEventListener('click', () => {
+            loadTool('profile', user);
+        });
+
         document.getElementById('menu-toggle-btn').addEventListener('click', toggleSidebar);
         sidebarOverlay.addEventListener('click', toggleSidebar);
         
         // Attach listener for collapse button
         document.getElementById('collapse-btn').addEventListener('click', toggleSidebarCollapse);
+
+        // --- Theme Toggle Logic ---
+        const themeToggle = document.getElementById('theme-toggle');
+        const themeIcon = themeToggle.closest('.flex').querySelector('i');
+
+        const applyTheme = (theme) => {
+            if (theme === 'dark') {
+                document.documentElement.classList.add('dark');
+                themeToggle.checked = false;
+                themeIcon.setAttribute('data-lucide', 'moon');
+            } else {
+                document.documentElement.classList.remove('dark');
+                themeToggle.checked = true;
+                themeIcon.setAttribute('data-lucide', 'sun');
+            }
+            lucide.createIcons();
+        };
+
+        // Check for saved theme
+        const savedTheme = localStorage.getItem('theme') || 'dark'; // Default to dark
+        applyTheme(savedTheme);
+
+        themeToggle.addEventListener('change', () => {
+            const newTheme = themeToggle.checked ? 'light' : 'dark';
+            localStorage.setItem('theme', newTheme);
+            applyTheme(newTheme);
+            logActivity(user, `Theme changed to ${newTheme}`);
+        });
+
 
         toolNav.addEventListener('click', e => {
             const link = e.target.closest('a[data-tool]');

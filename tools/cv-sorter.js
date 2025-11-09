@@ -1,10 +1,6 @@
-// NO CHANGES REQUIRED
-// This tool's HTML structure is already modular and will
-// inherit the new styles from style.css automatically.
-// The "Master-Detail" layout is very modern and fits perfectly.
 const tool = {
     name: 'CV Sorter',
-    icon: 'folder-search', // Lucide icon name
+    icon: 'folder-search',
     render: () => ({
         html: `<div id="cv-sorter-content" class="page-enter"><div class="flex items-center justify-center min-h-[70vh]"><div class="loader"></div><p class="ml-4 text-text-secondary">Loading CV Sorter...</p></div></div>`
     }),
@@ -424,118 +420,91 @@ function runCVSorter(container, user, { logActivity }) {
     }
 
     // --- HTML Template Functions ---
-    // This Master-Detail layout is perfect for the new style.
     function getToolShellHtml() {
        return `
         <div>
-            <!-- Header -->
-            <div class="flex flex-col md:flex-row justify-between md:items-center gap-4 mb-6">
-                <div>
+            <div class="flex justify-between items-center mb-6">
+                 <div>
                     <h1 class="text-3xl font-bold text-text-primary">CV Sorter</h1>
-                    <p class="text-lg text-text-secondary mt-1">Select, sort, and export CVs in bulk.</p>
+                    <p class="text-text-secondary mt-1">Select, sort, and export CVs in bulk from the manifest.</p>
                 </div>
-                <button id="refresh-manifest-btn" title="Reload CV data" class="button-secondary px-3 h-10 w-full md:w-auto">
+                <button id="refresh-manifest-btn" title="Reload CV data" class="button-secondary">
                     <i data-lucide="refresh-cw" class="w-4 h-4 mr-2"></i>
-                    <span class="text-sm font-semibold">Refresh Manifest</span>
+                    <span>Refresh Manifest</span>
                 </button>
             </div>
             
-            <!-- Main Content Card -->
-            <div class="bg-surface rounded-xl shadow-sm border border-border">
-                <!-- Master-Detail Layout -->
-                <div class="flex flex-col md:flex-row">
-                    <!-- Master (Navigation) -->
-                    <div class="w-full md:w-1/3 lg:w-1/4 p-6 border-b md:border-b-0 md:border-r border-border">
-                        <h3 class="text-lg font-semibold text-text-primary mb-4">Method</h3>
-                        <!-- UPDATED: Tab styles to be more subtle -->
-                        <nav class="space-y-2">
-                            <button id="tab-list" class="tab-item-vertical active" type="button">
-                                <i data-lucide="list-checks" class="w-5 h-5 mr-3"></i>
-                                Select from List
-                            </button>
-                            <button id="tab-paste" class="tab-item-vertical" type="button">
-                                <i data-lucide="clipboard-paste" class="w-5 h-5 mr-3"></i>
-                                Paste Roll Numbers
-                            </button>
-                        </nav>
-                        <!-- NEW: Style for the vertical tabs -->
-                        <style>
-                            .tab-item-vertical {
-                                @apply flex items-center w-full text-left px-3 py-2.5 rounded-lg text-sm transition-all duration-200 font-medium text-text-secondary;
-                                @apply hover:bg-gray-100 hover:text-text-primary;
-                            }
-                            .tab-item-vertical.active {
-                                @apply bg-primary/10 font-semibold text-primary;
-                            }
-                        </style>
-                    </div>
-                    
-                    <!-- Detail (Tab Content) -->
-                    <div id="tab-content-area" class="w-full md:w-2/3 lg:w-3/4 p-6 md:p-8">
-                        ${LOADER_HTML}
-                    </div>
+            <div class="bg-surface rounded-xl border border-border">
+                <div class="p-4 border-b border-border">
+                    <nav class="flex space-x-2">
+                        <button id="tab-list" class="tab-item active" type="button">
+                            <i data-lucide="list-checks" class="w-5 h-5 mr-2"></i>Select from List
+                        </button>
+                        <button id="tab-paste" class="tab-item" type="button">
+                            <i data-lucide="clipboard-paste" class="w-5 h-5 mr-2"></i>Paste Keys
+                        </button>
+                    </nav>
                 </div>
 
-                <!-- Shared Generation Area -->
-                <div id="generation-area" class="border-t border-border p-6 md:p-8 space-y-4 bg-background rounded-b-xl">
-                    <h3 class="text-xl font-semibold text-text-primary">Configuration & Export</h3>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div id="tab-content-area" class="p-6">
+                    ${LOADER_HTML}
+                </div>
+
+                <div id="generation-area" class="p-6 bg-background/50 border-t border-border rounded-b-xl">
+                    <div class="grid md:grid-cols-3 gap-4 items-end">
                         <div class="space-y-1">
-                            <label for="output-name-input" class="font-semibold text-text-primary text-sm">Output Name</label>
-                            <input type="text" id="output-name-input" placeholder="e.g., Shortlist-Round1" class="input-field">
+                            <label for="output-name-input" class="text-sm font-medium text-text-primary">Output Name</label>
+                            <input type="text" id="output-name-input" placeholder="e.g., Shortlist-Round1" class="input-field mt-1">
                         </div>
                         <div class="space-y-1">
-                            <label for="output-type-select" class="font-semibold text-text-primary text-sm">Output Type</label>
-                            <select id="output-type-select" class="input-field !px-4 !bg-white">
+                            <label for="output-type-select" class="text-sm font-medium text-text-primary">Output Type</label>
+                            <select id="output-type-select" class="input-field mt-1">
                                 <option value="zip">Export as .ZIP</option>
                                 <option value="gdrive">Create Google Drive Folder</option>
                             </select>
                         </div>
-                        <div class="space-y-1 md:self-end">
-                            <button id="generate-btn" disabled class="button-primary w-full">
-                                Generate
-                            </button>
-                        </div>
+                        <button id="generate-btn" disabled class="button-primary w-full">
+                           <i data-lucide="folder-sync" class="w-5 h-5 mr-2"></i> Generate
+                        </button>
                     </div>
-                    <p id="generation-feedback" class="text-center text-sm mt-2 hidden"></p>
+                    <p id="generation-feedback" class="text-center text-sm mt-4 hidden"></p>
                 </div>
             </div>
-        </div>`;
+        </div>
+        <style>
+            .tab-item { @apply flex items-center px-4 py-2 rounded-lg text-sm font-semibold transition-colors text-text-secondary hover:text-text-primary; }
+            .tab-item.active { @apply bg-primary/10 text-primary; }
+        </style>
+       `;
     }
 
     function getSelectListHtml(data) {
         return `
         <div class="space-y-4">
-            <h2 class="text-2xl font-semibold text-text-primary">Select from List</h2>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                 <div class="relative">
-                    <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                        <i data-lucide="search" class="w-5 h-5 text-text-secondary"></i>
-                    </div>
-                    <input type="text" id="cv-search" placeholder="Filter..." class="input-field pl-12 !h-11">
-                </div>
-                <div id="filter-count" class="h-11 bg-background border border-border rounded-lg flex items-center px-4 text-text-secondary font-medium">
-                    Showing ${data.size} of ${data.size} CVs
+            <div class="flex justify-between items-center">
+                <h3 class="text-lg font-semibold text-text-primary">Select CVs from Manifest</h3>
+                <div class="relative w-1/3">
+                    <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-text-secondary"></i>
+                    <input type="text" id="cv-search" placeholder="Filter..." class="input-field pl-10">
                 </div>
             </div>
-            <!-- CV List Table -->
-            <div class="h-[45vh] overflow-y-auto border border-border rounded-lg">
-                <table class="styled-table table-zebra">
-                    <thead>
+            <div id="filter-count" class="text-sm text-text-secondary">Showing ${data.size} of ${data.size} CVs</div>
+            <div class="h-[40vh] overflow-y-auto border border-border rounded-lg">
+                <table class="styled-table w-full">
+                     <thead class="sticky top-0 bg-surface">
                         <tr>
-                            <th class="p-4 w-12"><input type="checkbox" id="select-all-checkbox" class="h-5 w-5 rounded border-gray-300 text-primary focus:ring-primary focus:ring-offset-0"></th>
-                            <th>Roll Number / Variant</th>
+                            <th class="w-12"><input type="checkbox" id="select-all-checkbox" class="input-checkbox"></th>
+                            <th>Key</th>
                             <th>File Name</th>
                         </tr>
                     </thead>
                     <tbody id="cv-list">
                         ${Array.from(data.entries()).sort().map(([key, itemData]) => `
                             <tr class="cv-item" data-key="${key}" data-filename="${itemData.fileName}">
-                                <td class="p-4"><input type="checkbox" data-key="${key}" class="h-5 w-5 rounded border-gray-300 text-primary focus:ring-primary focus:ring-offset-0" ${selectedKeys.has(key) ? 'checked' : ''}></td>
+                                <td><input type="checkbox" data-key="${key}" class="input-checkbox" ${selectedKeys.has(key) ? 'checked' : ''}></td>
                                 <td class="font-mono text-sm">${key}</td>
                                 <td class="text-sm text-text-secondary truncate" title="${itemData.fileName}">${itemData.fileName}</td>
-                            </tr>
-                        `).join('')}
+                            </tr>`).join('')}
                     </tbody>
                 </table>
             </div>
@@ -544,28 +513,23 @@ function runCVSorter(container, user, { logActivity }) {
 
     function getPasteRollsHtml() {
          return `
-         <div class="space-y-6">
-            <h2 class="text-2xl font-semibold text-text-primary">Paste Roll Numbers</h2>
-             <!-- Text Input -->
-            <div class="space-y-4">
-                 <div class="flex justify-between items-center">
-                    <label for="roll-numbers-textarea" class="font-semibold text-text-primary">Roll Numbers & Variants</label>
-                    <button id="paste-from-clipboard-btn" class="button-secondary px-3 h-9 text-sm">
-                        <i data-lucide="clipboard-paste" class="w-4 h-4 mr-2"></i> Paste
+         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="space-y-2">
+                <div class="flex justify-between items-center">
+                    <label for="roll-numbers-textarea" class="text-lg font-semibold text-text-primary">Paste CV Keys</label>
+                    <button id="paste-from-clipboard-btn" class="button-secondary text-xs !h-7">
+                        <i data-lucide="clipboard-paste" class="w-4 h-4 mr-1.5"></i>Paste
                     </button>
                 </div>
-                <textarea id="roll-numbers-textarea" class="input-field h-[30vh] p-4 font-mono text-sm resize-y" placeholder="24BC581 A\n23BC501 B..."></textarea>
+                <textarea id="roll-numbers-textarea" class="input-field h-48 font-mono text-sm" placeholder="24BC581 A\n23BC501 B..."></textarea>
             </div>
-            <!-- Validation -->
-            <div class="space-y-6">
-                <div class="bg-background p-6 rounded-xl border border-border">
-                     <h3 class="font-semibold text-text-primary mb-4">Live Validation</h3>
-                     <div class="space-y-3">
-                        <div id="valid-count" class="badge-dot badge-dot-success">0 valid entries found</div>
-                        <div id="duplicate-count" class="badge-dot badge-dot-warning">0 duplicate lines ignored</div>
-                        <div id="invalid-count" class="badge-dot badge-dot-error">0 invalid lines or CVs not found</div>
-                     </div>
-                </div>
+             <div class="bg-background/50 p-4 rounded-lg">
+                 <h3 class="font-semibold text-text-primary mb-3 text-sm">Live Validation</h3>
+                 <div class="space-y-2">
+                    <div id="valid-count" class="badge-dot">0 valid entries found</div>
+                    <div id="duplicate-count" class="badge-dot">0 duplicate lines ignored</div>
+                    <div id="invalid-count" class="badge-dot">0 invalid lines or CVs not found</div>
+                 </div>
             </div>
         </div>`;
     }

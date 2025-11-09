@@ -9,13 +9,29 @@
     <!-- Google Font -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Raleway:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
     <!-- Custom CSS -->
     <link rel="stylesheet" href="/style.css">
+    <style>
+        :root {
+            --color-background: hsl(220, 30%, 96%); /* Light mode background */
+            --color-surface: hsl(0, 0%, 100%);     /* Light mode surface */
+            --color-border: hsl(220, 20%, 90%);      /* Light mode border */
+            --color-text-primary: hsl(220, 25%, 20%);/* Light mode text primary */
+            --color-text-secondary: hsl(220, 15%, 45%);/* Light mode text secondary */
+        }
+        html.dark {
+            --color-background: hsl(222, 25%, 8%);    /* Dark mode background */
+            --color-surface: hsl(220, 23%, 12%);   /* Dark mode surface */
+            --color-border: hsl(216, 15%, 22%);    /* Dark mode border */
+            --color-text-primary: hsl(215, 15%, 85%);  /* Dark mode text primary */
+            --color-text-secondary: hsl(213, 10%, 60%);/* Dark mode text secondary */
+        }
+    </style>
     <!-- Favicon -->
-    <link rel="icon" type="image/png" href="/logo.png">
+<link rel="icon" type="image/png" href="/media/logo.png">
     
     <!-- 
       NEW TAILWIND CONFIG
@@ -24,30 +40,33 @@
     -->
     <script>
         tailwind.config = {
+            darkMode: 'class',
             theme: {
                 extend: {
                     fontFamily: {
-                        sans: ['Inter', 'sans-serif'],
+                        sans: ['Raleway', 'sans-serif'],
                     },
                     colors: {
-                        'primary': '#2F81F7',
-                        'primary-dark': '#1A6DD5',
-                        'background': '#0D1117',
-                        'surface': '#161B22',
-                        'border': '#30363D',
-                        'text-primary': '#C9D1D9',
-                        'text-secondary': '#8B949E',
-                        'sidebar': '#161B22', // Dark sidebar
-                        'error': '#F85149',
-                        'warning': '#F59E0B',
-                        'success': '#2EA043',
+                        'primary': 'hsl(210, 90%, 55%)',       // #2F81F7
+                        'primary-dark': 'hsl(210, 90%, 45%)',
+
+                        'success': 'hsl(138, 55%, 45%)',      // #2EA043
+                        'warning': 'hsl(36, 90%, 50%)',       // #F59E0B
+                        'error': 'hsl(2, 93%, 63%)',         // #F85149
+
+                        // Using CSS variables for themeable colors
+                        'background': 'var(--color-background)',
+                        'surface': 'var(--color-surface)',
+                        'border': 'var(--color-border)',
+                        'text-primary': 'var(--color-text-primary)',
+                        'text-secondary': 'var(--color-text-secondary)',
                     }
                 }
             }
         }
     </script>
 </head>
-<body class="bg-background text-text-primary font-sans antialiased overflow-hidden"> 
+<body class="bg-background text-text-primary font-sans antialiased overflow-hidden">
 
     <!-- Loading Screen (No change) -->
     <div id="loading-screen" class="fixed inset-0 bg-surface/80 backdrop-blur-sm flex flex-col items-center justify-center z-50 transition-opacity duration-300 ease-out">
@@ -72,7 +91,7 @@
             
              <!-- Logo and Title -->
              <div class="flex items-center gap-3 px-3 py-2 mb-6 h-12">
-                <img class="w-9 h-9 bg-white/10 rounded-lg p-1" src="/logo.png" alt="GO-PC Logo">
+   <img class="w-9 h-9 bg-white/10 rounded-lg p-1" src="/media/logo.png" alt="GO-PC Logo">
                 <span id="logo-text" class="nav-item-text text-xl font-bold text-white whitespace-nowrap">GO-PC</span>
             </div>
 
