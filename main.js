@@ -11,6 +11,7 @@ import { tool as analyticsTool } from '/tools/analytics.js';
 // =================================================================================
 // --- 🔒 CONFIGURATION & SECURITY 🔒 ---
 // =================================================================================
+// Using the user-provided Firebase config
 const firebaseConfig = {
     apiKey: "AIzaSyANbAmQo0SNFntMpE_iceishapEGxMQ1SI",
     authDomain: "go-pc-987d0.firebaseapp.com",
@@ -20,6 +21,7 @@ const firebaseConfig = {
     appId: "1:1070794251659:web:55ebbc5239fb583dc2a38e"
 };
 
+// Using the user-provided whitelist
 const ADMIN_EMAIL = "fns.placementcell@srcc.du.ac.in";
 const WHITELISTED_EMAILS = [ ADMIN_EMAIL, 'srcc.pc.fns2526@gmail.com', 'placementcell@srcc.du.ac.in', 'shourayaaggarwal2006@gmail.com','sjonumwalia@gmail.com','tanvibansal0607@gmail.com','kohliashish12@gmail.com','dhwani1006@gmail.com','harshit.9731@gmail.com','aditya5462006@gmail.com','sharmamanzil05@gmail.com','rohangehani1@gmail.com','cheshani2006@gmail.com','gunjan17guptaa@gmail.com','sandeepramani2006@gmail.com','aadityagoyal0108@gmail.com','aayatirgoyal@gmail.com','mothikrishna86217@gmail.com' ];
 
@@ -101,12 +103,13 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // --- Renders the Authentication Screen Layout ---
+    // UPDATED: This function now renders the split-panel layout
     function renderAuthShell() {
-        // Two-panel layout with color
+        // Two-panel layout with new colors
         const html = `
             <div class="min-h-screen flex">
-                <!-- Colored Panel -->
-                <div class="hidden lg:flex w-1/2 bg-gradient-to-br from-primary to-indigo-700 relative items-center justify-center overflow-hidden">
+                <!-- Colored Panel (matches new primary blue) -->
+                <div class="hidden lg:flex w-1/2 bg-gradient-to-br from-primary to-blue-700 relative items-center justify-center overflow-hidden">
                     <div class="absolute w-60 h-60 bg-white/5 rounded-full -top-10 -left-12 opacity-50"></div>
                     <div class="absolute w-80 h-80 bg-white/5 rounded-full -bottom-20 -right-10 opacity-50"></div>
                     <div class="z-10 text-white text-center p-12">
@@ -127,17 +130,18 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- Renders the Google Sign-In Form ---
+    // UPDATED: Cleaner, left-aligned form
     function renderLoginForm(container) {
         renderView(container, `
-            <div class="bg-surface p-8 rounded-2xl shadow-lg border border-border lg:bg-transparent lg:shadow-none lg:border-none lg:p-0">
+            <div class="w-full">
                 <!-- Mobile-only Logo -->
                 <div class="flex items-center gap-3 mb-6 lg:hidden">
                     <img class="w-10 h-10 bg-white rounded-xl p-1 shadow-sm border border-border" src="/logo.png" alt="GO-PC Logo">
                     <h1 class="text-2xl font-bold text-text-primary">GO-PC</h1>
                 </div>
 
-                <h2 class="text-2xl font-bold text-text-primary text-center mb-2">Welcome Back</h2>
-                <p class="text-text-secondary text-center mb-8">Sign in with your authorized Google account.</p>
+                <h2 class="text-3xl font-bold text-text-primary mb-2">Welcome Back</h2>
+                <p class="text-text-secondary mb-8">Sign in with your authorized Google account to continue.</p>
                 <button id="google-signin-btn" class="button-primary w-full">
                     <svg class="w-5 h-5 mr-3" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24s8.955,20,20,20s20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"></path><path fill="#FF3D00" d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z"></path><path fill="#4CAF50" d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36c-5.222,0-9.619-3.317-11.283-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z"></path><path fill="#1976D2" d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.574l6.19,5.238C39.99,35.508,44,29.891,44,24C44,22.659,43.862,21.35,43.611,20.083z"></path></svg>
                     Sign in with Google
@@ -176,30 +180,23 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- Mobile Sidebar Toggle ---
-    // --- Mobile Sidebar Toggle ---
     function toggleSidebar() {
         sidebar.classList.toggle('-translate-x-full');
         sidebarOverlay.classList.toggle('hidden');
         sidebarOverlay.classList.toggle('opacity-0');
     }
 
-    // --- Desktop Sidebar Toggle (FIXED) ---
+    // --- Desktop Sidebar Toggle ---
+    // This function correctly swaps the icon and re-renders Lucide
     function toggleSidebarCollapse() {
         const appScreen = document.getElementById('app-screen');
-        const collapseBtn = document.getElementById('collapse-btn');
-        
-        if (!appScreen || !collapseBtn) {
-            console.error('Collapse elements not found');
-            return;
-        }
+        const collapseIcon = document.querySelector('#collapse-btn i');
         
         // Toggle the class on the main app screen
-        appScreen.classList.toggle('sidebar-collapsed');
+        const isCollapsed = appScreen.classList.toggle('sidebar-collapsed');
         
         // Update the icon to reflect the new state
-        const collapseIcon = collapseBtn.querySelector('i');
         if (collapseIcon) {
-            const isCollapsed = appScreen.classList.contains('sidebar-collapsed');
             collapseIcon.setAttribute('data-lucide', isCollapsed ? 'chevrons-right' : 'chevrons-left');
             lucide.createIcons(); // Re-render the icon
         }
@@ -207,7 +204,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     // --- Renders the Main Application Shell (Sidebar, Header, User Profile) ---
-        function renderAppShell(user) {
+    function renderAppShell(user) {
         const isAdmin = user.email === ADMIN_EMAIL; 
 
         toolNav.innerHTML = Object.keys(tools).map(key => {
@@ -221,15 +218,16 @@ document.addEventListener('DOMContentLoaded', () => {
                     </a>`;
         }).join('');
 
+        // UPDATED: User profile section now uses new colors
         userProfileContainer.innerHTML = `
-            <button id="collapse-btn" class="nav-item mb-2 w-full hidden lg:flex hover:bg-white/5">
-                <i data-lucide="chevrons-left" class="w-5 h-5 mr-3 transition-transform duration-300"></i>
+            <button id="collapse-btn" class="nav-item mb-1 w-full hidden lg:flex">
+                <i data-lucide="chevrons-left" class="w-5 h-5 mr-3 transition-transform duration-300 ease-in-out"></i>
                 <span class="nav-item-text">Collapse Menu</span>
             </button>
 
-            <div class="border-t border-white/10 pt-3">
-                <div id="user-profile-card" class="flex items-center p-2 rounded-lg transition-all duration-300">
-                    <img id="user-avatar" src="${user.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.displayName)}&background=4F46E5&color=fff`}" alt="User Avatar" class="w-9 h-9 rounded-full object-cover border-2 border-white/20 shrink-0" />
+            <div class="border-t border-white/10 pt-4">
+                 <div id="user-profile-card" class="flex items-center p-2 rounded-lg transition-all duration-300 ease-in-out">
+                    <img id="user-avatar" src="${user.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.displayName)}&background=2563EB&color=fff`}" alt="User Avatar" class="w-9 h-9 rounded-full object-cover border-2 border-white/20 shrink-0" />
                     <div id="user-profile-info" class="ml-3 flex-1 min-w-0 nav-item-text">
                         <p class="text-sm font-semibold truncate text-white" title="${user.displayName}">${user.displayName}</p>
                         <p class="text-xs text-gray-400 truncate" title="${user.email}">${user.email}</p>
@@ -251,29 +249,16 @@ document.addEventListener('DOMContentLoaded', () => {
         `;
 
         // Attach listeners after rendering
-        const logoutBtn = document.getElementById('logout-button');
-        const menuToggleBtn = document.getElementById('menu-toggle-btn');
-        const collapseBtn = document.getElementById('collapse-btn');
-        
-        if (logoutBtn) {
-            logoutBtn.addEventListener('click', () => {
-                logActivity(user, "User Logged Out"); 
-                signOut(auth);
-            });
-        }
+        document.getElementById('logout-button').addEventListener('click', () => {
+             logActivity(user, "User Logged Out"); 
+             signOut(auth);
+        });
 
-        if (menuToggleBtn) {
-            menuToggleBtn.addEventListener('click', toggleSidebar);
-        }
+        document.getElementById('menu-toggle-btn').addEventListener('click', toggleSidebar);
+        sidebarOverlay.addEventListener('click', toggleSidebar);
         
-        if (sidebarOverlay) {
-            sidebarOverlay.addEventListener('click', toggleSidebar);
-        }
-        
-        // Attach listener for collapse button (FIXED)
-        if (collapseBtn) {
-            collapseBtn.addEventListener('click', toggleSidebarCollapse);
-        }
+        // Attach listener for collapse button
+        document.getElementById('collapse-btn').addEventListener('click', toggleSidebarCollapse);
 
         toolNav.addEventListener('click', e => {
             const link = e.target.closest('a[data-tool]');
@@ -346,26 +331,3 @@ document.addEventListener('DOMContentLoaded', () => {
     }, 1500); 
 
 }); // End DOMContentLoaded
-
-// Emergency collapse button fix - runs after page load
-window.addEventListener('load', () => {
-    setTimeout(() => {
-        const collapseBtn = document.getElementById('collapse-btn');
-        if (collapseBtn && !collapseBtn.hasAttribute('data-listener-attached')) {
-            collapseBtn.addEventListener('click', () => {
-                const appScreen = document.getElementById('app-screen');
-                if (appScreen) {
-                    appScreen.classList.toggle('sidebar-collapsed');
-                    const icon = collapseBtn.querySelector('i');
-                    if (icon) {
-                        const isCollapsed = appScreen.classList.contains('sidebar-collapsed');
-                        icon.setAttribute('data-lucide', isCollapsed ? 'chevrons-right' : 'chevrons-left');
-                        lucide.createIcons();
-                    }
-                }
-            });
-            collapseBtn.setAttribute('data-listener-attached', 'true');
-            console.log('✅ Emergency collapse listener attached');
-        }
-    }, 1000);
-});

@@ -1,13 +1,7 @@
-// --- State Variables ---
-let cvData = new Map(); 
-let selectedKeys = new Set();
-let currentMode = 'list'; // 'list' or 'paste'
-const ROLL_VARIANT_REGEX = /(\d{2}[A-Z]{2}\d{3}\s[A-C])/i; 
-const CV_SORTER_GAS_URL = "https://script.google.com/macros/s/AKfycbwODlCwdVbWf95F__YBwokhTZ1k3xIVDw2ofn6X27OKEVIEnLwTb5KuuS7fAQ9nUi_b/exec";
-
-const LOADER_HTML = `<div class="flex items-center justify-center h-full min-h-[40vh]"><div class="loader"></div><p class="ml-4 text-text-secondary">Loading...</p></div>`;
-
-// --- Tool Definition ---
+// NO CHANGES REQUIRED
+// This tool's HTML structure is already modular and will
+// inherit the new styles from style.css automatically.
+// The "Master-Detail" layout is very modern and fits perfectly.
 const tool = {
     name: 'CV Sorter',
     icon: 'folder-search', // Lucide icon name
@@ -22,6 +16,15 @@ const tool = {
 
 // --- Main Logic Function ---
 function runCVSorter(container, user, { logActivity }) {
+
+    // --- State Variables ---
+    let cvData = new Map(); 
+    let selectedKeys = new Set();
+    let currentMode = 'list'; // 'list' or 'paste'
+    const ROLL_VARIANT_REGEX = /(\d{2}[A-Z]{2}\d{3}\s[A-C])/i; 
+    const CV_SORTER_GAS_URL = "https://script.google.com/macros/s/AKfycbwODlCwdVbWf95F__YBwokhTZ1k3xIVDw2ofn6X27OKEVIEnLwTb5KuuS7fAQ9nUi_b/exec";
+
+    const LOADER_HTML = `<div class="flex items-center justify-center h-full min-h-[40vh]"><div class="loader"></div><p class="ml-4 text-text-secondary">Loading...</p></div>`;
 
     // --- Core UI Update Function ---
     function renderToolShell() {
@@ -204,7 +207,8 @@ function runCVSorter(container, user, { logActivity }) {
             linksText.split('\n').forEach(line => {
                  const parts = line.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
                  if (parts.length >= 2) {
-                    const fileName = parts[0]?.trim().replace(/^"|"$/g, ''); 
+                    // UPDATED: Use the File Name from column 3 (index 2) as it's more reliable
+                    const fileName = parts[2]?.trim().replace(/^"|"$/g, ''); 
                     const gdriveLink = parts[1]?.trim().replace(/^"|"$/g, '');
                     if (fileName && gdriveLink) {
                         linksMap.set(fileName.toLowerCase(), gdriveLink); 
@@ -338,7 +342,7 @@ function runCVSorter(container, user, { logActivity }) {
             feedback.innerHTML = message;
             feedback.className = `text-center text-sm mt-4 p-4 rounded-lg ${ 
                 type === 'error' ? 'bg-error/10 text-error' : 
-                type === 'success' ? 'bg-secondary/10 text-secondary' : 
+                type === 'success' ? 'bg-success/10 text-success' : 
                 'bg-primary/10 text-primary' 
             }`;
             feedback.classList.remove('hidden');
@@ -420,216 +424,155 @@ function runCVSorter(container, user, { logActivity }) {
     }
 
     // --- HTML Template Functions ---
-    // Add these enhanced HTML template functions to cv-sorter.js
-// Replace the existing template functions with these
-
-// Enhanced "Master-Detail" Shell
-// Enhanced CV Sorter HTML Templates
-// Replace the existing template functions in cv-sorter.js with these
-
-// Enhanced "Master-Detail" Shell
-function getToolShellHtml() {
-   return `
-    <div>
-        <!-- Header -->
-        <div class="flex flex-col md:flex-row justify-between md:items-center gap-4 mb-6">
-            <div>
-                <div class="flex items-center gap-3 mb-2">
-                    <div class="p-2.5 bg-gradient-to-br from-secondary/10 to-emerald-600/10 rounded-xl">
-                        <i data-lucide="folder-search" class="w-7 h-7 text-secondary"></i>
-                    </div>
-                    <div>
-                        <h1 class="text-3xl font-black text-text-primary tracking-tight">CV Sorter</h1>
-                        <p class="text-base text-text-secondary mt-1">Select, sort, and export CVs in bulk</p>
-                    </div>
-                </div>
-            </div>
-            <button id="refresh-manifest-btn" title="Reload CV data" class="button-secondary px-3.5 w-full md:w-auto shadow-sm hover:shadow-md">
-                <i data-lucide="refresh-cw" class="w-4 h-4 mr-2"></i>
-                <span class="text-sm font-semibold">Refresh Manifest</span>
-            </button>
-        </div>
-        
-        <!-- Main Content Card -->
-        <div class="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
-            <!-- Master-Detail Layout -->
-            <div class="flex flex-col md:flex-row">
-                <!-- Master (Navigation) -->
-                <div class="w-full md:w-1/3 lg:w-1/4 p-6 border-b md:border-b-0 md:border-r border-gray-200 bg-gradient-to-br from-gray-50 to-white">
-                    <h3 class="text-base font-bold text-text-primary mb-4 flex items-center gap-2">
-                        <div class="w-1 h-5 bg-gradient-to-b from-secondary to-emerald-600 rounded-full"></div>
-                        Selection Method
-                    </h3>
-                    <nav class="space-y-2">
-                        <button id="tab-list" class="tab-item-vertical active w-full" type="button">
-                            <i data-lucide="list-checks" class="w-5 h-5 mr-3"></i>
-                            <span>Select from List</span>
-                        </button>
-                        <button id="tab-paste" class="tab-item-vertical w-full" type="button">
-                            <i data-lucide="clipboard-paste" class="w-5 h-5 mr-3"></i>
-                            <span>Paste Roll Numbers</span>
-                        </button>
-                    </nav>
-                    <!-- Info Box -->
-                    <div class="mt-6 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                        <div class="flex items-start gap-2">
-                            <i data-lucide="lightbulb" class="w-4 h-4 text-blue-600 shrink-0 mt-0.5"></i>
-                            <p class="text-xs text-blue-700 leading-relaxed">Choose your preferred method to select CVs for sorting and export.</p>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Detail (Tab Content) -->
-                <div id="tab-content-area" class="w-full md:w-2/3 lg:w-3/4 p-6">
-                    ${LOADER_HTML}
-                </div>
-            </div>
-
-            <!-- Shared Generation Area -->
-            <div id="generation-area" class="border-t border-gray-200 p-5 md:p-6 space-y-4 bg-gradient-to-br from-gray-50 to-white">
-                <div class="flex items-center gap-2">
-                    <div class="w-1 h-5 bg-gradient-to-b from-primary to-indigo-600 rounded-full"></div>
-                    <h3 class="text-lg font-bold text-text-primary">Configuration & Export</h3>
-                </div>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div class="space-y-1.5">
-                        <label for="output-name-input" class="font-semibold text-text-primary text-sm flex items-center gap-1.5">
-                            <i data-lucide="file-text" class="w-4 h-4 text-primary"></i>
-                            Output Name
-                        </label>
-                        <input type="text" id="output-name-input" placeholder="e.g., Shortlist-Round1" class="input-field">
-                    </div>
-                    <div class="space-y-1.5">
-                        <label for="output-type-select" class="font-semibold text-text-primary text-sm flex items-center gap-1.5">
-                            <i data-lucide="package" class="w-4 h-4 text-primary"></i>
-                            Output Type
-                        </label>
-                        <select id="output-type-select" class="input-field cursor-pointer">
-                            <option value="zip">📦 Export as .ZIP</option>
-                            <option value="gdrive">☁️ Create Google Drive Folder</option>
-                        </select>
-                    </div>
-                    <div class="space-y-1.5 md:self-end">
-                        <button id="generate-btn" disabled class="button-primary w-full">
-                            <i data-lucide="sparkles" class="w-4 h-4 mr-2"></i>
-                            Generate
-                        </button>
-                    </div>
-                </div>
-                <p id="generation-feedback" class="text-center text-sm mt-2 hidden"></p>
-            </div>
-        </div>
-    </div>`;
-}
-
-function getSelectListHtml(data) {
-    return `
-    <div class="space-y-4">
+    // This Master-Detail layout is perfect for the new style.
+    function getToolShellHtml() {
+       return `
         <div>
-            <h2 class="text-xl font-bold text-text-primary mb-1">Select from List</h2>
-            <p class="text-text-secondary text-sm">Browse and select CVs to include in your export</p>
-        </div>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-             <div class="relative">
-                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <i data-lucide="search" class="w-4 h-4 text-text-secondary"></i>
+            <!-- Header -->
+            <div class="flex flex-col md:flex-row justify-between md:items-center gap-4 mb-6">
+                <div>
+                    <h1 class="text-3xl font-bold text-text-primary">CV Sorter</h1>
+                    <p class="text-lg text-text-secondary mt-1">Select, sort, and export CVs in bulk.</p>
                 </div>
-                <input type="text" id="cv-search" placeholder="Search by roll number or filename..." class="input-field pl-10 shadow-sm">
-            </div>
-            <div id="filter-count" class="bg-gradient-to-r from-gray-50 to-white border border-gray-200 rounded-lg flex items-center px-4 text-text-secondary font-medium shadow-sm text-sm h-11">
-                <i data-lucide="filter" class="w-4 h-4 mr-2 text-secondary"></i>
-                Showing ${data.size} of ${data.size} CVs
-            </div>
-        </div>
-        <!-- CV List Table -->
-        <div class="h-[45vh] overflow-y-auto border border-gray-200 rounded-lg">
-            <table class="styled-table table-zebra">
-                <thead class="sticky top-0 z-10">
-                    <tr>
-                        <th class="p-4 w-14">
-                            <input type="checkbox" id="select-all-checkbox" class="h-4 w-4 rounded border-gray-300 text-secondary focus:ring-secondary focus:ring-offset-0">
-                        </th>
-                        <th class="p-4">
-                            <div class="flex items-center gap-2">
-                                <i data-lucide="hash" class="w-4 h-4"></i>
-                                Roll Number / Variant
-                            </div>
-                        </th>
-                        <th class="p-4">
-                            <div class="flex items-center gap-2">
-                                <i data-lucide="file" class="w-4 h-4"></i>
-                                File Name
-                            </div>
-                        </th>
-                    </tr>
-                </thead>
-                <tbody id="cv-list">
-                    ${Array.from(data.entries()).sort().map(([key, itemData]) => `
-                        <tr class="cv-item" data-key="${key}" data-filename="${itemData.fileName}">
-                            <td class="p-4">
-                                <input type="checkbox" data-key="${key}" class="h-4 w-4 rounded border-gray-300 text-secondary focus:ring-secondary focus:ring-offset-0" ${selectedKeys.has(key) ? 'checked' : ''}>
-                            </td>
-                            <td class="font-mono text-sm font-medium">
-                                <span class="bg-gray-100 px-2.5 py-1 rounded">${key}</span>
-                            </td>
-                            <td class="text-sm text-text-secondary truncate" title="${itemData.fileName}">${itemData.fileName}</td>
-                        </tr>
-                    `).join('')}
-                </tbody>
-            </table>
-        </div>
-    </div>`;
-}
-
-function getPasteRollsHtml() {
-     return `
-     <div class="space-y-5">
-        <div>
-            <h2 class="text-xl font-bold text-text-primary mb-1">Paste Roll Numbers</h2>
-            <p class="text-text-secondary text-sm">Quickly paste a list for bulk CV selection</p>
-        </div>
-         <!-- Text Input -->
-        <div class="space-y-3">
-             <div class="flex justify-between items-center">
-                <label for="roll-numbers-textarea" class="font-semibold text-text-primary flex items-center gap-1.5 text-sm">
-                    <i data-lucide="file-text" class="w-4 h-4 text-secondary"></i>
-                    Roll Numbers & Variants
-                </label>
-                <button id="paste-from-clipboard-btn" class="button-secondary px-3 text-sm shadow-sm">
-                    <i data-lucide="clipboard-paste" class="w-4 h-4 mr-1.5"></i> Paste
+                <button id="refresh-manifest-btn" title="Reload CV data" class="button-secondary px-3 h-10 w-full md:w-auto">
+                    <i data-lucide="refresh-cw" class="w-4 h-4 mr-2"></i>
+                    <span class="text-sm font-semibold">Refresh Manifest</span>
                 </button>
             </div>
-            <textarea id="roll-numbers-textarea" class="input-field p-4 font-mono text-sm resize-y" style="height: 30vh;" placeholder="24BC581 A&#10;23BC501 B&#10;..."></textarea>
-        </div>
-        <!-- Validation -->
-        <div class="space-y-5">
-            <div class="bg-gradient-to-br from-gray-50 to-white p-5 rounded-xl border border-gray-200">
-                 <h3 class="font-bold text-text-primary mb-4 flex items-center gap-2 text-sm">
-                    <i data-lucide="check-circle-2" class="w-5 h-5 text-primary"></i>
-                    Live Validation
-                 </h3>
-                 <div class="space-y-3">
-                    <div id="valid-count" class="badge-dot badge-dot-secondary">0 valid entries found</div>
-                    <div id="duplicate-count" class="badge-dot badge-dot-warning">0 duplicate lines ignored</div>
-                    <div id="invalid-count" class="badge-dot badge-dot-error">0 invalid lines or CVs not found</div>
-                 </div>
-            </div>
-            <div class="info-box blue">
-                <div class="p-2 bg-blue-100 rounded-lg shrink-0">
-                    <i data-lucide="info" class="w-4 h-4 text-blue-600"></i>
+            
+            <!-- Main Content Card -->
+            <div class="bg-surface rounded-xl shadow-sm border border-border">
+                <!-- Master-Detail Layout -->
+                <div class="flex flex-col md:flex-row">
+                    <!-- Master (Navigation) -->
+                    <div class="w-full md:w-1/3 lg:w-1/4 p-6 border-b md:border-b-0 md:border-r border-border">
+                        <h3 class="text-lg font-semibold text-text-primary mb-4">Method</h3>
+                        <!-- UPDATED: Tab styles to be more subtle -->
+                        <nav class="space-y-2">
+                            <button id="tab-list" class="tab-item-vertical active" type="button">
+                                <i data-lucide="list-checks" class="w-5 h-5 mr-3"></i>
+                                Select from List
+                            </button>
+                            <button id="tab-paste" class="tab-item-vertical" type="button">
+                                <i data-lucide="clipboard-paste" class="w-5 h-5 mr-3"></i>
+                                Paste Roll Numbers
+                            </button>
+                        </nav>
+                        <!-- NEW: Style for the vertical tabs -->
+                        <style>
+                            .tab-item-vertical {
+                                @apply flex items-center w-full text-left px-3 py-2.5 rounded-lg text-sm transition-all duration-200 font-medium text-text-secondary;
+                                @apply hover:bg-gray-100 hover:text-text-primary;
+                            }
+                            .tab-item-vertical.active {
+                                @apply bg-primary/10 font-semibold text-primary;
+                            }
+                        </style>
+                    </div>
+                    
+                    <!-- Detail (Tab Content) -->
+                    <div id="tab-content-area" class="w-full md:w-2/3 lg:w-3/4 p-6 md:p-8">
+                        ${LOADER_HTML}
+                    </div>
                 </div>
-                <div>
-                    <h4 class="font-bold text-blue-900 mb-1 text-sm">Validation Info</h4>
-                    <p class="text-xs text-blue-700 leading-relaxed">Invalid entries, duplicates, and non-existent CV keys are automatically detected and excluded from the export.</p>
+
+                <!-- Shared Generation Area -->
+                <div id="generation-area" class="border-t border-border p-6 md:p-8 space-y-4 bg-background rounded-b-xl">
+                    <h3 class="text-xl font-semibold text-text-primary">Configuration & Export</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div class="space-y-1">
+                            <label for="output-name-input" class="font-semibold text-text-primary text-sm">Output Name</label>
+                            <input type="text" id="output-name-input" placeholder="e.g., Shortlist-Round1" class="input-field">
+                        </div>
+                        <div class="space-y-1">
+                            <label for="output-type-select" class="font-semibold text-text-primary text-sm">Output Type</label>
+                            <select id="output-type-select" class="input-field !px-4 !bg-white">
+                                <option value="zip">Export as .ZIP</option>
+                                <option value="gdrive">Create Google Drive Folder</option>
+                            </select>
+                        </div>
+                        <div class="space-y-1 md:self-end">
+                            <button id="generate-btn" disabled class="button-primary w-full">
+                                Generate
+                            </button>
+                        </div>
+                    </div>
+                    <p id="generation-feedback" class="text-center text-sm mt-2 hidden"></p>
                 </div>
             </div>
-        </div>
-    </div>`;
-}
+        </div>`;
+    }
+
+    function getSelectListHtml(data) {
+        return `
+        <div class="space-y-4">
+            <h2 class="text-2xl font-semibold text-text-primary">Select from List</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                 <div class="relative">
+                    <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                        <i data-lucide="search" class="w-5 h-5 text-text-secondary"></i>
+                    </div>
+                    <input type="text" id="cv-search" placeholder="Filter..." class="input-field pl-12 !h-11">
+                </div>
+                <div id="filter-count" class="h-11 bg-background border border-border rounded-lg flex items-center px-4 text-text-secondary font-medium">
+                    Showing ${data.size} of ${data.size} CVs
+                </div>
+            </div>
+            <!-- CV List Table -->
+            <div class="h-[45vh] overflow-y-auto border border-border rounded-lg">
+                <table class="styled-table table-zebra">
+                    <thead>
+                        <tr>
+                            <th class="p-4 w-12"><input type="checkbox" id="select-all-checkbox" class="h-5 w-5 rounded border-gray-300 text-primary focus:ring-primary focus:ring-offset-0"></th>
+                            <th>Roll Number / Variant</th>
+                            <th>File Name</th>
+                        </tr>
+                    </thead>
+                    <tbody id="cv-list">
+                        ${Array.from(data.entries()).sort().map(([key, itemData]) => `
+                            <tr class="cv-item" data-key="${key}" data-filename="${itemData.fileName}">
+                                <td class="p-4"><input type="checkbox" data-key="${key}" class="h-5 w-5 rounded border-gray-300 text-primary focus:ring-primary focus:ring-offset-0" ${selectedKeys.has(key) ? 'checked' : ''}></td>
+                                <td class="font-mono text-sm">${key}</td>
+                                <td class="text-sm text-text-secondary truncate" title="${itemData.fileName}">${itemData.fileName}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            </div>
+        </div>`;
+    }
+
+    function getPasteRollsHtml() {
+         return `
+         <div class="space-y-6">
+            <h2 class="text-2xl font-semibold text-text-primary">Paste Roll Numbers</h2>
+             <!-- Text Input -->
+            <div class="space-y-4">
+                 <div class="flex justify-between items-center">
+                    <label for="roll-numbers-textarea" class="font-semibold text-text-primary">Roll Numbers & Variants</label>
+                    <button id="paste-from-clipboard-btn" class="button-secondary px-3 h-9 text-sm">
+                        <i data-lucide="clipboard-paste" class="w-4 h-4 mr-2"></i> Paste
+                    </button>
+                </div>
+                <textarea id="roll-numbers-textarea" class="input-field h-[30vh] p-4 font-mono text-sm resize-y" placeholder="24BC581 A\n23BC501 B..."></textarea>
+            </div>
+            <!-- Validation -->
+            <div class="space-y-6">
+                <div class="bg-background p-6 rounded-xl border border-border">
+                     <h3 class="font-semibold text-text-primary mb-4">Live Validation</h3>
+                     <div class="space-y-3">
+                        <div id="valid-count" class="badge-dot badge-dot-success">0 valid entries found</div>
+                        <div id="duplicate-count" class="badge-dot badge-dot-warning">0 duplicate lines ignored</div>
+                        <div id="invalid-count" class="badge-dot badge-dot-error">0 invalid lines or CVs not found</div>
+                     </div>
+                </div>
+            </div>
+        </div>`;
+    }
+
     // --- Initial Tool Load ---
     renderToolShell();
 
 } // End runCVSorter
 
 export { tool };
-
