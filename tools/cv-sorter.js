@@ -1,3 +1,12 @@
+// --- NEW: Define a global poller variable ---
+// We use 'window' to ensure it's truly global and can be cleared
+// when the tool is re-mounted.
+if (window.cvSorterPoller) {
+  clearInterval(window.cvSorterPoller);
+}
+window.cvSorterPoller = null;
+
+
 const tool = {
     name: 'CV Sorter',
     icon: 'folder-search',
@@ -6,6 +15,12 @@ const tool = {
     }),
     onMount: (contentElement, user, { logActivity }) => {
         const toolContainer = contentElement.querySelector('#cv-sorter-content');
+        
+        // --- NEW: Clear any old pollers when the tool loads ---
+        if (window.cvSorterPoller) {
+          clearInterval(window.cvSorterPoller);
+        }
+        
         runCVSorter(toolContainer, user, { logActivity });
     }
 };
@@ -18,22 +33,127 @@ function runCVSorter(container, user, { logActivity }) {
     let selectedKeys = new Set();
     let currentMode = 'list'; // 'list' or 'paste'
     const ROLL_VARIANT_REGEX = /(\d{2}[A-Z]{2}\d{3}\s[A-C])/i; 
-    const CV_SORTER_GAS_URL = "https://script.google.com/macros/s/AKfycbwODlCwdVbWf95F__YBwokhTZ1k3xIVDw2ofn6X27OKEVIEnLwTb5KuuS7fAQ9nUi_b/exec";
-
+    const CV_SORTER_GAS_URL = "https://script.google.com/macros/s/AKfycbzZL0S7DCmz7WMMPIqFguNvfZvlbO-c4jZmNsoA9ahE5-9seradcbEpu18v7gxKgCom/exec";
     const LOADER_HTML = `<div class="flex items-center justify-center h-full min-h-[40vh]"><div class="loader"></div><p class="ml-4 text-text-secondary">Loading...</p></div>`;
+
+    // --- Helper to show feedback ---
+    const showFeedback = (message, type = 'info') => {
+        const feedback = container.querySelector('#generation-feedback');
+        if (!feedback) return;
+        
+        feedback.innerHTML = message;
+        feedback.className = `text-center text-sm mt-4 p-4 rounded-lg ${ 
+            type === 'error' ? 'bg-error/10 text-error' : 
+            type === 'success' ? 'bg-success/10 text-success' : 
+            'bg-primary/10 text-primary' 
+        }`;
+        feedback.classList.remove('hidden');
+        lucide.createIcons();
+    };
+
+    // --- Functions for polling and progress UI ---
+    
+    /**
+     * --- MODIFIED ---
+     * Starts polling the 'getJobStatus' endpoint.
+     * Now only checks for 'idle' status to stop.
+     */
+    function startJobPolling() {
+      stopJobPolling(); // Clear any existing pollers
+      
+      window.cvSorterPoller = setInterval(async () => {
+        try {
+          // Append a random query param to prevent caching
+          const pollUrl = `${CV_SORTER_GAS_URL}?action=getJobStatus&cachebust=${Date.now()}`;
+          const response = await fetch(pollUrl, { cache: 'no-cache' });
+          
+          if (!response.ok) {
+            console.warn(`Poll request failed with status ${response.status}`);
+            return;
+          }
+
+          const statusData = await response.json();
+          
+          if (statusData.status === 'idle') {
+            // Job is done!
+            stopJobPolling();
+            renderProgressUI(null, true); // Render final "complete" state
+          } else if (statusData.status === 'processing') {
+            // Job is still running, do nothing and let it keep polling.
+          } else if (statusData.status === 'error') {
+            // This shouldn't happen with the new backend, but good to have
+            console.error('Job status returned an error:', statusData.message);
+            stopJobPolling();
+            showFeedback(`<strong>Error during processing:</strong> ${statusData.message}`, 'error');
+            if (container.querySelector('#generate-btn')) container.querySelector('#generate-btn').disabled = false;
+          }
+          
+        } catch (err) {
+          console.error('Poll Error:', err);
+          // Don't stop polling on a single network error, just log it.
+        }
+      }, 10000); // Poll every 10 seconds
+    }
+
+    /**
+     * Clears the polling interval
+     */
+    function stopJobPolling() {
+      if (window.cvSorterPoller) {
+        clearInterval(window.cvSorterPoller);
+        window.cvSorterPoller = null;
+      }
+    }
+
+    /**
+     * --- MODIFIED ---
+     * Renders an indeterminate progress bar with an optional ETA string.
+     * No longer shows X of Y counts.
+     */
+    function renderProgressUI(etaString, isComplete = false) {
+        const generateBtn = container.querySelector('#generate-btn');
+        
+        if (isComplete) {
+            if(generateBtn) generateBtn.disabled = false;
+            showFeedback(
+                '✅ <strong>Processing Complete!</strong><br>Your request has been sent to the admin for final approval.<br><span class="text-xs opacity-75 mt-2 block">You will be notified by email.</span>', 
+                'success'
+            );
+            return;
+        }
+
+        // This is the new "processing" state.
+        if(generateBtn) generateBtn.disabled = true;
+
+        const progressHtml = `
+            <div class="space-y-3">
+                <div class="flex justify-between items-center text-sm font-semibold">
+                    <span class="text-primary flex items-center"><i data-lucide="loader-2" class="w-4 h-4 mr-2 animate-spin"></i>Processing...</span>
+                    ${etaString ? `<span class="text-text-secondary">${etaString}</span>` : ''}
+                </div>
+                <div class="w-full bg-border rounded-full h-2.5 overflow-hidden">
+                    <div class="bg-primary h-2.5 rounded-full" style="width: 100%; animation: indeterminate 2s infinite linear;"></div>
+                </div>
+                <p class="text-xs text-text-secondary text-center">Please keep this tab open.</p>
+            </div>
+            <style>
+                @keyframes indeterminate {
+                    0% { transform: translateX(-100%) scaleX(0.5); }
+                    50% { transform: translateX(0) scaleX(0.2); }
+                    100% { transform: translateX(100%) scaleX(0.5); }
+                }
+            </style>
+        `;
+        showFeedback(progressHtml, 'info');
+    }
 
     // --- Core UI Update Function ---
     function renderToolShell() {
-        container.innerHTML = getToolShellHtml();
-        
-        // Attach listeners for shell elements (tabs, generate button)
-        attachShellEventListeners();
-        
-        // Load default tab
-        loadTabContent('list', true); // Show loader initially
-        
-        // Start loading data
-        loadData();
+        // Only render if the container is empty (or has the initial loader)
+        if (container.querySelector('#cv-sorter-content') || !container.querySelector('#generation-area')) {
+             container.innerHTML = getToolShellHtml();
+             attachShellEventListeners(); // Attach listeners for shell elements
+        }
     }
 
     // --- Event Listeners ---
@@ -54,7 +174,10 @@ function runCVSorter(container, user, { logActivity }) {
         
         container.querySelector('#refresh-manifest-btn')?.addEventListener('click', () => {
             loadTabContent(currentMode, true); // Force loading state
-            loadData();
+            loadData().then(() => {
+                // Once data is re-loaded, render the tab content
+                loadTabContent(currentMode);
+            });
         });
 
         generateBtn?.addEventListener('click', () => {
@@ -72,6 +195,7 @@ function runCVSorter(container, user, { logActivity }) {
         outputNameInput?.addEventListener('input', updateGenerateButtonState);
     }
     
+    // --- Unchanged Functions ---
     function attachListTabListeners() {
         const searchInput = container.querySelector('#cv-search');
         const cvList = container.querySelector('#cv-list');
@@ -128,7 +252,6 @@ function runCVSorter(container, user, { logActivity }) {
             updateGenerateButtonState();
         });
     }
-    
     function attachPasteTabListeners() {
         const textArea = container.querySelector('#roll-numbers-textarea');
         const pasteBtn = container.querySelector('#paste-from-clipboard-btn');
@@ -146,8 +269,6 @@ function runCVSorter(container, user, { logActivity }) {
         
         validatePastedKeys(); // Initial validation
     }
-    
-    // --- Tab Loading ---
     function loadTabContent(mode, forceLoading = false) {
         const tabContent = container.querySelector('#tab-content-area');
         const listTab = container.querySelector('#tab-list');
@@ -182,8 +303,6 @@ function runCVSorter(container, user, { logActivity }) {
         lucide.createIcons();
         updateGenerateButtonState(); // Update button state whenever tab changes
     }
-
-    // --- Data Loading ---
     async function loadData() {
         try {
              const [manifestResponse, linksResponse] = await Promise.all([
@@ -203,7 +322,6 @@ function runCVSorter(container, user, { logActivity }) {
             linksText.split('\n').forEach(line => {
                  const parts = line.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
                  if (parts.length >= 2) {
-                    // UPDATED: Use the File Name from column 3 (index 2) as it's more reliable
                     const fileName = parts[2]?.trim().replace(/^"|"$/g, ''); 
                     const gdriveLink = parts[1]?.trim().replace(/^"|"$/g, '');
                     if (fileName && gdriveLink) {
@@ -233,19 +351,27 @@ function runCVSorter(container, user, { logActivity }) {
             }
             
             cvData = parsedData; 
-            loadTabContent(currentMode); // Reload content of the currently active tab
             
         } catch (e) {
             console.error("Error loading CV data:", e);
-            container.querySelector('#tab-content-area').innerHTML = `<div class="bg-error/10 text-error p-4 rounded-lg"><strong>Error:</strong> ${e.message}</div>`;
+            renderToolShell();
+            const tabContent = container.querySelector('#tab-content-area');
+            if (tabContent) {
+                tabContent.innerHTML = `<div class="bg-error/10 text-error p-4 rounded-lg"><strong>Error:</strong> ${e.message}</div>`;
+            } else {
+                 container.innerHTML = `<div class="bg-error/10 text-error p-4 rounded-lg"><strong>Error:</strong> ${e.message}</div>`;
+            }
         }
     }
-
-     // --- UI Updates ---
      function updateGenerateButtonState() {
         const generateBtn = container.querySelector('#generate-btn');
         const outputNameInput = container.querySelector('#output-name-input');
         if (!generateBtn || !outputNameInput) return;
+        
+        if (window.cvSorterPoller) {
+            generateBtn.disabled = true;
+            return;
+        }
         
         const hasOutputName = outputNameInput.value.trim().length > 0;
         let hasValidSelection = false;
@@ -262,7 +388,6 @@ function runCVSorter(container, user, { logActivity }) {
 
          generateBtn.disabled = !(hasValidSelection && hasOutputName);
      }
-
     function processPastedKeys(text) {
         const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
         const results = {
@@ -304,7 +429,6 @@ function runCVSorter(container, user, { logActivity }) {
             notFoundKeys: Array.from(results.notFoundKeys)
         };
     }
-
     function validatePastedKeys() {
          const textArea = container.querySelector('#roll-numbers-textarea');
          if (!textArea) return;
@@ -320,53 +444,40 @@ function runCVSorter(container, user, { logActivity }) {
          
          updateGenerateButtonState();
     }
+    // --- End Unchanged Functions ---
 
-    // --- Generation Logic ---
+
+    /**
+     * --- MODIFIED ---
+     * Calculates client-side ETA.
+     * Shows indeterminate progress bar.
+     * Calls 'doPost' to start the job.
+     * Starts the simplified poller.
+     */
     async function handleGenerate(keysToProcessSet) {
         const outputNameInput = container.querySelector('#output-name-input');
         const outputTypeSelect = container.querySelector('#output-type-select');
-        const feedback = container.querySelector('#generation-feedback');
         const generateBtn = container.querySelector('#generate-btn');
 
-        if (!outputNameInput || !outputTypeSelect || !feedback || !generateBtn) return;
+        if (!outputNameInput || !outputTypeSelect || !generateBtn) return;
 
         const outputName = outputNameInput.value.trim();
         const outputType = outputTypeSelect.value;
         const keysArray = Array.from(keysToProcessSet);
-
-        const showFeedback = (message, type = 'info') => {
-            feedback.innerHTML = message;
-            feedback.className = `text-center text-sm mt-4 p-4 rounded-lg ${ 
-                type === 'error' ? 'bg-error/10 text-error' : 
-                type === 'success' ? 'bg-success/10 text-success' : 
-                'bg-primary/10 text-primary' 
-            }`;
-            feedback.classList.remove('hidden');
-            lucide.createIcons();
-        };
 
         if (!outputName) return showFeedback("Please enter an output file/folder name.", 'error');
         if (keysArray.length === 0) return showFeedback("No valid CV keys selected or provided.", 'error');
 
         generateBtn.disabled = true;
 
-        const numKeys = keysArray.length;
-        const etaMessage = `Est. ${new Date(Date.now() + Math.ceil((numKeys * 1.2) + 5) * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true })}`;
+        // --- NEW: Client-side ETA calculation ---
+        const SECONDS_PER_CV = 4.0; // ~4.0 seconds per CV fetch/copy
+        const etaMs = (keysArray.length * SECONDS_PER_CV * 1000) + 20000; // Add 15s buffer for zipping/etc
+        const etaDate = new Date(Date.now() + etaMs);
+        const etaString = `ETA - ${etaDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true })}`;
 
-        const progressHtml = `
-            <div class="space-y-3">
-                <div class="flex justify-between items-center text-sm font-semibold">
-                    <span class="text-primary flex items-center"><i data-lucide="loader-2" class="w-4 h-4 mr-2 animate-spin"></i>Processing ${numKeys} CVs...</span>
-                    <span class="text-text-secondary">${etaMessage}</span>
-                </div>
-                <div class="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
-                    <div class="bg-primary h-2 rounded-full animate-pulse" style="animation: indeterminate 2s infinite linear;"></div>
-                </div>
-                <p class="text-xs text-text-secondary text-center">Please keep this tab open.</p>
-            </div>
-            <style>@keyframes indeterminate { 0% { transform: translateX(-100%); } 100% { transform: translateX(400%); } }</style>
-        `;
-        showFeedback(progressHtml, 'info');
+        // Show the new indeterminate progress UI
+        renderProgressUI(etaString, false); 
 
         try {
             const formData = new FormData();
@@ -389,37 +500,29 @@ function runCVSorter(container, user, { logActivity }) {
 
             const result = await response.json();
 
-            if (result.status === 'success') {
-                let successMsg = '<strong class="block mb-2">Success!</strong>';
-                if (outputType === 'zip' && result.downloadUrls?.length > 0) {
-                    successMsg += `Download: ${result.downloadUrls.map((url, i) => 
-                        `<a href="${url}" target="_blank" class="text-primary underline hover:text-primary-dark font-medium">Part ${i + 1}</a>`
-                    ).join(', ')}`;
-                } else if (outputType === 'gdrive' && result.folderUrl) {
-                    successMsg += `<a href="${result.folderUrl}" target="_blank" class="text-primary underline hover:text-primary-dark font-medium">Open Google Drive Folder</a>`;
-                }
-                showFeedback(successMsg, 'success');
-                logActivity?.(user, `CV Sort success: ${outputName} (${keysArray.length} CVs, ${outputType})`);
-            } else if (result.status === 'approval_sent') {
-                showFeedback(
-                    '⏳ <strong>Approval Required</strong><br>Your request has been sent to the admin for approval.<br><span class="text-xs opacity-75 mt-2 block">You will be notified by email.</span>', 
-                    'info'
-                );
-                logActivity?.(user, `CV Sort approval requested: ${outputName}`);
+            if (result.status === 'processing_started') {
+                // The job is running! Start polling for updates.
+                startJobPolling();
+                logActivity?.(user, `CV Sort started: ${outputName} (${keysArray.length} CVs, ${outputType})`);
+            
+            } else if (result.status === 'error') {
+                throw new Error(result.message || 'The server returned an error.');
             } else {
-                throw new Error(result.message || result.error || 'Unknown error');
+                throw new Error(`Received unexpected status: ${result.status}`);
             }
 
         } catch (err) {
             console.error("CV Sorter Fetch Error:", err);
             showFeedback(`<strong>Error:</strong> ${err.message}`, 'error');
             logActivity?.(user, `CV Sort failed: ${outputName} - ${err.message}`);
-        } finally {
-            generateBtn.disabled = false;
+            
+            // Re-enable the button on failure
+            if (generateBtn) generateBtn.disabled = false;
+            stopJobPolling();
         }
     }
 
-    // --- HTML Template Functions ---
+    // --- HTML Template Functions (Unchanged) ---
     function getToolShellHtml() {
        return `
         <div>
@@ -477,7 +580,6 @@ function runCVSorter(container, user, { logActivity }) {
         </style>
        `;
     }
-
     function getSelectListHtml(data) {
         return `
         <div class="space-y-4">
@@ -510,7 +612,6 @@ function runCVSorter(container, user, { logActivity }) {
             </div>
         </div>`;
     }
-
     function getPasteRollsHtml() {
          return `
          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -534,8 +635,42 @@ function runCVSorter(container, user, { logActivity }) {
         </div>`;
     }
 
-    // --- Initial Tool Load ---
-    renderToolShell();
+    /**
+     * --- MODIFIED ---
+     * Checks for a running job on load.
+     * Shows generic "Processing..." animation if a job is active.
+     */
+    const checkInitialJobStatus = async () => {
+         try {
+            const pollUrl = `${CV_SORTER_GAS_URL}?action=getJobStatus&cachebust=${Date.now()}`;
+            const response = await fetch(pollUrl, { cache: 'no-cache' });
+            const statusData = await response.json();
+            
+            renderToolShell(); // Render the main UI first
+
+            if (statusData.status === 'processing') {
+                // A job is already running! Show the progress bar *without* ETA.
+                renderProgressUI(null, false); // Pass null for etaString
+                startJobPolling();
+            } else {
+                // No job, load as normal.
+                loadTabContent(currentMode); // <-- Render the default tab
+            }
+         } catch (e) {
+             console.error("Initial job status check failed:", e);
+             renderToolShell(); // Load normally even if check fails
+             loadTabContent(currentMode); // <-- Render the default tab
+         }
+    };
+
+    // Start by loading data, which will then render the UI
+    loadData().then(() => {
+        // After data is loaded, check if a job is running.
+        if (cvData.size > 0) {
+            checkInitialJobStatus();
+        }
+        // If cvData.size is 0, loadData() already rendered an error, so do nothing.
+    });
 
 } // End runCVSorter
 

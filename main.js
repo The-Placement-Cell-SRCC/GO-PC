@@ -114,7 +114,8 @@ document.addEventListener('DOMContentLoaded', () => {
         renderLoginForm(document.getElementById('auth-form-container'));
     }
 
-    // --- Renders the Google Sign-In Form ---
+    // --- Renders the 
+    // Sign-In Form ---
     function renderLoginForm(container) {
         renderView(container, `
             <div class="w-full bg-surface p-8 rounded-xl border border-border shadow-2xl">
