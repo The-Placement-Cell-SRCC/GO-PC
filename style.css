@@ -5,15 +5,15 @@ body {
 
 /* --- Animations --- */
 @keyframes page-enter {
-    0% { opacity: 0; transform: translateY(10px); }
+    0% { opacity: 0; transform: translateY(8px); }
     100% { opacity: 1; transform: translateY(0); }
 }
 .page-enter { 
-    animation: page-enter 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards; 
+    animation: page-enter 0.4s ease-out forwards;
 }
 .stagger-item { 
     opacity: 0; 
-    animation: page-enter 0.5s ease-out forwards; 
+    animation: page-enter 0.4s ease-out forwards;
     animation-delay: var(--stagger-delay, 0ms); 
 }
 
@@ -22,7 +22,6 @@ body {
     width: 48px; 
     height: 48px; 
     border: 4px solid theme('colors.border');
-    /* UPDATED: Use new primary color */
     border-bottom-color: theme('colors.primary');
     border-radius: 50%;
     display: inline-block;
@@ -36,30 +35,27 @@ body {
 /* --- Base Component Styles --- */
 /* Input fields */
 .input-field {
-    /* UPDATED: Cleaner white background */
-    @apply block w-full h-11 px-4 bg-white border border-border rounded-lg text-sm text-text-primary placeholder-text-secondary;
+    @apply block w-full h-10 px-3 bg-background border border-border rounded-md text-sm text-text-primary placeholder-text-secondary;
     @apply focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200 ease-in-out;
 }
 select.input-field {
-    @apply h-11 !py-0;
+    @apply h-10 !py-0;
 }
 textarea.input-field {
-    @apply h-auto py-3;
+    @apply h-auto py-2;
 }
 
 /* Primary buttons */
 .button-primary {
-    @apply inline-flex items-center justify-center h-11 px-6 bg-primary text-white rounded-lg font-semibold text-sm shadow-sm;
-    @apply hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary;
-    /* UPDATED: Removed transform for a cleaner look */
-    @apply hover:shadow-md transition-all duration-200 ease-in-out;
-    @apply disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none disabled:hover:bg-primary disabled:hover:shadow-sm;
+    @apply inline-flex items-center justify-center h-10 px-5 bg-primary text-white rounded-md font-semibold text-sm shadow-sm;
+    @apply hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary focus:ring-offset-background;
+    @apply transition-all duration-200 ease-in-out;
+    @apply disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:bg-primary;
 }
 /* Secondary/Ghost buttons */
 .button-secondary {
-    /* UPDATED: White button with border, as seen in target style */
-     @apply inline-flex items-center justify-center h-11 px-4 bg-white text-text-primary rounded-lg font-semibold text-sm border border-border shadow-sm;
-     @apply hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary;
+     @apply inline-flex items-center justify-center h-10 px-4 bg-surface text-text-primary rounded-md font-semibold text-sm border border-border shadow-sm;
+     @apply hover:bg-border/50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary focus:ring-offset-background;
      @apply transition-all duration-200 ease-in-out;
 }
 /* Danger buttons (for clear/delete) */
@@ -70,16 +66,14 @@ textarea.input-field {
 
 /* --- Sidebar --- */
 .nav-item {
-     /* UPDATED: Use new text color for inactive state */
-     @apply flex items-center w-full text-left px-3 py-2.5 rounded-lg text-sm transition-all duration-200 text-text-secondary;
-     @apply hover:bg-gray-700 hover:text-white;
+     @apply flex items-center w-full text-left px-3 py-2 rounded-md text-sm transition-all duration-200 text-text-secondary;
+     @apply hover:bg-white/5 hover:text-text-primary;
 }
 .nav-item.active {
-    /* UPDATED: Use new primary color and remove shadow */
     @apply bg-primary font-semibold text-white;
 }
 .nav-item .lucide {
-    @apply w-5 h-5 mr-3 shrink-0 transition-all duration-300 ease-in-out;
+    @apply w-5 h-5 mr-3 shrink-0;
 }
 .nav-item-text {
     @apply whitespace-nowrap transition-opacity duration-300 ease-in-out;
@@ -88,10 +82,10 @@ textarea.input-field {
 
 /* --- Collapsed Sidebar Styles --- */
 #app-screen.sidebar-collapsed #sidebar {
-    @apply lg:w-[76px]; /* Collapsed width */
+    @apply lg:w-[72px]; /* Collapsed width */
 }
 #app-screen.sidebar-collapsed #main-content-wrapper {
-    @apply lg:pl-[76px]; /* Match collapsed sidebar width */
+    @apply lg:pl-[72px]; /* Match collapsed sidebar width */
 }
 #app-screen.sidebar-collapsed .nav-item-text,
 #app-screen.sidebar-collapsed #user-profile-info,
@@ -114,27 +108,24 @@ textarea.input-field {
 /* --- Specific Component Styles --- */
 /* Dashboard: Welcome Banner */
 .welcome-banner {
-    /* This will automatically use the new 'primary' color */
-    @apply bg-gradient-to-r from-primary to-blue-700 text-white p-8 rounded-2xl shadow-lg relative overflow-hidden;
+    @apply bg-surface p-8 rounded-xl border border-border relative;
 }
 
 /* Dashboard: Stat Cards */
 .stat-card {
-    @apply bg-surface p-6 rounded-2xl shadow-sm border border-border;
-    @apply transition-all duration-300;
+    @apply bg-surface p-6 rounded-xl border border-border;
 }
 .stat-card-lg {
-    @apply bg-surface p-6 rounded-2xl shadow-sm border border-border;
-    @apply transition-all duration-300;
+    @apply bg-surface p-6 rounded-xl border border-border;
 }
 .stat-card:hover {
-    @apply shadow-lg -translate-y-1;
+    @apply border-primary/50;
 }
 
 /* Tool Cards (Method Selection) */
 .action-card {
-    @apply w-full max-w-[420px] bg-surface p-6 rounded-2xl shadow-sm text-left group border border-border;
-    @apply hover:shadow-lg hover:border-primary/50 hover:-translate-y-1 transition-all duration-300 flex flex-col relative cursor-pointer;
+    @apply w-full max-w-[420px] bg-surface p-6 rounded-xl text-left group border border-border;
+    @apply hover:border-primary hover:-translate-y-1 transition-all duration-300 flex flex-col relative cursor-pointer;
 }
 
 /* Badge for validation */
@@ -143,9 +134,8 @@ textarea.input-field {
 }
 .badge-dot::before {
     content: '';
-    @apply h-2 w-2 rounded-full mr-3 shrink-0;
+    @apply h-2 w-2 rounded-full mr-2.5 shrink-0;
 }
-/* UPDATED: Use new color names */
 .badge-dot-success { @apply text-success; }
 .badge-dot-success::before { @apply bg-success; }
 .badge-dot-warning { @apply text-warning; }
@@ -155,27 +145,30 @@ textarea.input-field {
 
 /* Table Styles */
 .styled-table {
-    @apply w-full text-left table-auto;
+    @apply w-full text-left table-auto border-collapse;
 }
 .styled-table thead {
-    @apply bg-gray-50 border-b border-border;
+    @apply bg-surface border-b-2 border-border;
 }
 .styled-table th {
-    @apply p-4 font-semibold text-sm uppercase text-text-secondary tracking-wider;
+    @apply p-4 font-semibold text-sm text-text-primary tracking-wide;
 }
-.styled-table tbody {
-    @apply divide-y divide-border;
+.styled-table tbody tr {
+    @apply border-b border-border;
+}
+.styled-table tbody tr:last-child {
+    @apply border-none;
 }
 .styled-table tr:hover {
-    @apply bg-gray-50;
+    @apply bg-white/5;
 }
 .styled-table td {
-    @apply p-4 text-sm text-text-primary;
+    @apply p-4 text-sm text-text-secondary;
 }
-/* UPDATED: Cleaner zebra striping */
+
 .styled-table .table-zebra tbody tr:nth-child(even) {
-    @apply bg-gray-50;
+    @apply bg-white/5;
 }
 .styled-table .table-zebra tbody tr:nth-child(even):hover {
-    @apply bg-gray-100;
+    @apply bg-white/[.07];
 }
