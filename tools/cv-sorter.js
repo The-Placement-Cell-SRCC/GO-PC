@@ -533,7 +533,6 @@ function runCVSorter(container, user, { logActivity }) {
                 </div>
                 <button id="refresh-manifest-btn" title="Reload CV data" class="button-secondary">
                     <i data-lucide="refresh-cw" class="w-4 h-4 mr-2"></i>
-                    <span>Refresh Manifest</span>
                 </button>
             </div>
             
@@ -556,18 +555,18 @@ function runCVSorter(container, user, { logActivity }) {
                 <div id="generation-area" class="p-6 bg-background/50 border-t border-border rounded-b-xl">
                     <div class="grid md:grid-cols-3 gap-4 items-end">
                         <div class="space-y-1">
-                            <label for="output-name-input" class="text-sm font-medium text-text-primary">Output Name</label>
-                            <input type="text" id="output-name-input" placeholder="e.g., Shortlist-Round1" class="input-field mt-1">
+                            <label for="output-name-input" class="text-sm font-medium text-text-primary">File Name: </label>
+                            <input type="text" id="output-name-input" placeholder=" Vetted CVs || Company" class="input-field mt-1 rounded-l rounded-r bg-gray-800">
                         </div>
                         <div class="space-y-1">
                             <label for="output-type-select" class="text-sm font-medium text-text-primary">Output Type</label>
-                            <select id="output-type-select" class="input-field mt-1">
-                                <option value="zip">Export as .ZIP</option>
-                                <option value="gdrive">Create Google Drive Folder</option>
+                            <select id="output-type-select" class="input-field mt-1 rounded-l rounded-r bg-gray-800">
+                                <option value="zip"> Export as .ZIP</option>
+                                <option value="gdrive"> Create Google Drive Folder</option>
                             </select>
                         </div>
                         <button id="generate-btn" disabled class="button-primary w-full">
-                           <i data-lucide="folder-sync" class="w-5 h-5 mr-2"></i> Generate
+                            <div class="align-center border bg-gray-600 rounded-r rounded-l border-1 border-black-500 w-fit pl-2 pr-2">Generate</div>
                         </button>
                     </div>
                     <p id="generation-feedback" class="text-center text-sm mt-4 hidden"></p>
@@ -619,7 +618,7 @@ function runCVSorter(container, user, { logActivity }) {
                 <div class="flex justify-between items-center">
                     <label for="roll-numbers-textarea" class="text-lg font-semibold text-text-primary">Paste CV Keys</label>
                     <button id="paste-from-clipboard-btn" class="button-secondary text-xs !h-7">
-                        <i data-lucide="clipboard-paste" class="w-4 h-4 mr-1.5"></i>Paste
+                        <i data-lucide="clipboard-paste" class="w-4 h-4 mr-1.5"></i>
                     </button>
                 </div>
                 <textarea id="roll-numbers-textarea" class="input-field h-48 font-mono text-sm" placeholder="24BC581 A\n23BC501 B..."></textarea>

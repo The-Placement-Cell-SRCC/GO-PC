@@ -24,7 +24,7 @@ const tool = {
                     </div>
 
                     <!-- Quick Actions -->
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         <a href="#" data-tool-link="vcf-generator" class="action-card">
                              <div class="flex items-center justify-center w-12 h-12 bg-primary/10 rounded-lg">
                                 <i data-lucide="contact" class="w-6 h-6 text-primary"></i>
@@ -39,17 +39,7 @@ const tool = {
                             <h3 class="mt-4 font-semibold text-text-primary">CV Sorter</h3>
                             <p class="mt-1 text-sm text-text-secondary">Sort and categorize CVs based on custom criteria.</p>
                         </a>
-                        <a href="#" data-tool-link="analytics" class="action-card">
-                            <div class="flex items-center justify-center w-12 h-12 bg-primary/10 rounded-lg">
-                                <i data-lucide="bar-chart-3" class="w-6 h-6 text-primary"></i>
-                            </div>
-                            <h3 class="mt-4 font-semibold text-text-primary">System Analytics</h3>
-                            <p class="mt-1 text-sm text-text-secondary">View usage statistics and system health.</p>
-                        </a>
-                    </div>
-
-                    <!-- Recent Activity -->
-                    <div>
+                        <div>
                         <h2 class="text-xl font-bold text-text-primary mb-4">Recent Activity</h2>
                         <div id="activity-log-container" class="bg-surface rounded-lg border border-border">
                             <div class="p-8 text-center text-text-secondary">
@@ -57,6 +47,7 @@ const tool = {
                                 <p class="mt-3">Loading activity...</p>
                             </div>
                         </div>
+                    </div>
                     </div>
                 </div>
             `
