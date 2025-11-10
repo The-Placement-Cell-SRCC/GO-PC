@@ -493,7 +493,7 @@ function runCVSorter(container, user, { logActivity }) {
                 <table class="styled-table w-full">
                      <thead class="sticky top-0 bg-surface">
                         <tr>
-                            <th class="w-12"><input type="checkbox" id="select-all-checkbox" class="input-checkbox"></th>
+                            <th class="w-12 !pl-4"><input type="checkbox" id="select-all-checkbox" class="input-checkbox"></th>
                             <th>Key</th>
                             <th>File Name</th>
                         </tr>

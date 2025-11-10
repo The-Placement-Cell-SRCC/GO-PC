@@ -339,8 +339,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             });
 
-            logActivity(user, `Mapped to ${tool.name}`);
-            
             lucide.createIcons();
 
         } catch (error) {
