@@ -1,0 +1,31 @@
+body {
+    background-color: #000;
+    color: #0F0;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 16px;
+    line-height: 1.4;
+}
+
+#terminal {
+    padding: 10px;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+
+#input-line {
+    display: flex;
+}
+
+#prompt {
+    margin-right: 10px;
+}
+
+#command-input {
+    background-color: transparent;
+    border: none;
+    color: #0F0;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 16px;
+    outline: none;
+    width: 100%;
+}

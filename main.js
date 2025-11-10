@@ -1,6 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
 import { getAuth, onAuthStateChanged, signOut, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-import { getFirestore, collection, addDoc, serverTimestamp, query, orderBy, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
 // --- Tool Imports ---
 import { tool as dashboardTool } from '/tools/dashboard.js';
@@ -12,7 +12,6 @@ import { tool as profileTool } from '/tools/profile.js';
 // =================================================================================
 // --- 🔒 CONFIGURATION & SECURITY 🔒 ---
 // =================================================================================
-// Using the user-provided Firebase config
 const firebaseConfig = {
     apiKey: "AIzaSyANbAmQo0SNFntMpE_iceishapEGxMQ1SI",
     authDomain: "go-pc-987d0.firebaseapp.com",
@@ -22,7 +21,6 @@ const firebaseConfig = {
     appId: "1:1070794251659:web:55ebbc5239fb583dc2a38e"
 };
 
-// Using the user-provided whitelist
 const ADMIN_EMAIL = "fns.placementcell@srcc.du.ac.in";
 const WHITELISTED_EMAILS = [ ADMIN_EMAIL, 'srcc.pc.fns2526@gmail.com', 'placementcell@srcc.du.ac.in', 'shourayaaggarwal2006@gmail.com','sjonumwalia@gmail.com','tanvibansal0607@gmail.com','kohliashish12@gmail.com','dhwani1006@gmail.com','harshit.9731@gmail.com','aditya5462006@gmail.com','sharmamanzil05@gmail.com','rohangehani1@gmail.com','cheshani2006@gmail.com','gunjan17guptaa@gmail.com','sandeepramani2006@gmail.com','aadityagoyal0108@gmail.com','aayatirgoyal@gmail.com','mothikrishna86217@gmail.com' ];
 
@@ -35,9 +33,8 @@ const tools = {
     'vcf-generator': vcfGeneratorTool,
     'cv-sorter': cvSorterTool,
     'analytics': analyticsTool,
-    // 'profile': profileTool,
+    'profile': profileTool,
 };
-
 
 // --- Logger ---
 async function logActivity(user, action) {
@@ -54,302 +51,138 @@ async function logActivity(user, action) {
 
 // --- Main App Logic ---
 document.addEventListener('DOMContentLoaded', () => {
-    const loadingScreen = document.getElementById('loading-screen');
-    const authScreen = document.getElementById('auth-screen');
-    const appScreen = document.getElementById('app-screen'); // This is the element to toggle class on
-    const toolNav = document.getElementById('tool-nav');
-    const mainContent = document.getElementById('main-content');
-    const mainHeader = document.getElementById('main-header');
-    const userProfileContainer = document.getElementById('user-profile-container');
-    const sidebar = document.getElementById('sidebar');
-    const sidebarOverlay = document.getElementById('sidebar-overlay');
+    const terminal = document.getElementById('terminal');
+    const commandInput = document.getElementById('command-input');
+    let commandHistory = [];
+    let historyIndex = -1;
+    let currentUser = null;
 
-    // Helper function to render views with fade-in animation
-    const renderView = (container, html) => {
-        container.innerHTML = html;
-        const firstChild = container.firstElementChild;
-        if (firstChild) firstChild.classList.add('page-enter');
+    const printToTerminal = (text, isCommand = false) => {
+        if (isCommand) {
+            terminal.textContent += `\n> ${text}`;
+        }
+        terminal.textContent += `\n${text}`;
+        terminal.scrollTop = terminal.scrollHeight;
     };
 
-    // Helper function to show the correct main screen (loading, auth, app)
-    const showPage = (pageId) => {
-        loadingScreen.style.opacity = 0;
-        setTimeout(() => loadingScreen.classList.add('hidden'), 300);
+    const clearTerminal = () => {
+        terminal.textContent = '';
+    };
 
-        authScreen.classList.add('hidden');
-        appScreen.classList.add('hidden');
+    const showHelp = () => {
+        printToTerminal('Available commands:');
+        printToTerminal('  help      - Show this help message');
+        printToTerminal('  login     - Log in with your Google account');
+        printToTerminal('  logout    - Log out of the current session');
+        printToTerminal('  clear     - Clear the terminal screen');
+        Object.keys(tools).forEach(key => {
+            printToTerminal(`  ${key.padEnd(10)} - ${tools[key].name}`);
+        });
+    };
 
-        const targetPage = document.getElementById(pageId);
-        if (targetPage) {
-            targetPage.classList.remove('hidden');
-        } else {
-            console.error(`Page with ID "${pageId}" not found.`);
+    const handleCommand = async (command) => {
+        const [cmd, ...args] = command.trim().split(' ');
+        printToTerminal(command, true);
+        commandHistory.unshift(command);
+        historyIndex = -1;
+
+        if (!currentUser && cmd !== 'login') {
+            printToTerminal('Error: You must be logged in to use this command. Type "login" to begin.');
+            return;
+        }
+
+        switch (cmd) {
+            case 'help':
+                showHelp();
+                break;
+            case 'login':
+                if (currentUser) {
+                    printToTerminal('You are already logged in.');
+                } else {
+                    handleGoogleSignIn();
+                }
+                break;
+            case 'logout':
+                if (currentUser) {
+                    await signOut(auth);
+                    printToTerminal('You have been logged out.');
+                } else {
+                    printToTerminal('You are not logged in.');
+                }
+                break;
+            case 'clear':
+                clearTerminal();
+                break;
+            default:
+                if (tools[cmd]) {
+                    const tool = tools[cmd];
+                    try {
+                        const output = tool.render(currentUser, { db, logActivity });
+                        printToTerminal(output.text); // We'll refactor tools to return text
+                        if (tool.onMount) {
+                            tool.onMount(terminal, currentUser, { db, logActivity });
+                        }
+                    } catch (error) {
+                        printToTerminal(`Error executing tool "${cmd}": ${error.message}`);
+                    }
+                } else {
+                    printToTerminal(`Command not found: ${cmd}. Type "help" for a list of commands.`);
+                }
+                break;
         }
     };
 
-    // --- Authentication State Listener ---
-    onAuthStateChanged(auth, (user) => {
-        if (user && WHITELISTED_EMAILS.includes(user.email)) {
-            logActivity(user, "User Logged In");
-            renderAppShell(user); 
-            loadTool('dashboard', user); 
-            showPage('app-screen'); 
-        } else {
-            if (user) {
-                logActivity(user, "Unauthorized access attempt, logging out.");
-                signOut(auth).catch(console.error); 
-            }
-            renderAuthShell(); 
-            showPage('auth-screen'); 
-        }
-    });
-
-    // --- Renders the Authentication Screen Layout ---
-    function renderAuthShell() {
-        const html = `
-            <div class="min-h-screen flex items-center justify-center bg-background p-4">
-                <div id="auth-form-container" class="w-full max-w-sm"></div>
-            </div>`;
-        authScreen.innerHTML = html;
-        renderLoginForm(document.getElementById('auth-form-container'));
-    }
-
-    // --- Renders the 
-    // Sign-In Form ---
-    function renderLoginForm(container) {
-        renderView(container, `
-            <div class="w-full bg-surface p-8 rounded-xl border border-border shadow-2xl">
-                <div class="flex items-center justify-center gap-3 mb-6">
-                    <img class="w-10 h-10 rounded-lg" src="/media/logo.png" alt="GO-PC Logo">
-                    <h1 class="text-2xl font-bold text-text-primary">GO-PC Login</h1>
-                </div>
-                <p class="text-text-secondary text-center mb-8 text-sm">Use your authorized Google account to access the dashboard.</p>
-                <button id="google-signin-btn" class="button-primary w-full">
-                <img src="Google_Logo.png" class="w-7 h-7 pb-0.5 mr-2 inline-block" />
-                Sign in with Google
-                </button>
-                 <p id="login-error" class="text-error text-sm text-center mt-4 hidden"></p>
-            </div>`);
-        container.querySelector('#google-signin-btn').addEventListener('click', handleGoogleSignIn);
-    }
-
-    // --- Handles the Google Sign-In Popup Flow ---
-    async function handleGoogleSignIn() {
+    const handleGoogleSignIn = async () => {
         const provider = new GoogleAuthProvider();
-        const errorEl = document.getElementById('login-error');
-        if (errorEl) errorEl.classList.add('hidden'); 
-
         try {
             const result = await signInWithPopup(auth, provider);
             const user = result.user;
             if (!WHITELISTED_EMAILS.includes(user.email)) {
-                await signOut(auth); 
-                throw new Error("This Google account is not authorized for GO-PC.");
+                await signOut(auth);
+                printToTerminal("Error: This Google account is not authorized for GO-PC.");
             }
         } catch (error) {
-            console.error("Google Sign-In Error:", error);
-            if (errorEl) {
-                let message = "Sign-in failed. Please try again.";
-                if (error.code === 'auth/popup-closed-by-user') {
-                    message = "Sign-in cancelled.";
-                } else if (error.message.includes("authorized")) {
-                    message = error.message; 
-                }
-                errorEl.textContent = message;
-                errorEl.classList.remove('hidden');
-            }
+            printToTerminal(`Sign-in failed: ${error.message}`);
         }
-    }
+    };
 
-    // --- Mobile Sidebar Toggle ---
-    function toggleSidebar() {
-        sidebar.classList.toggle('-translate-x-full');
-        sidebarOverlay.classList.toggle('hidden');
-        sidebarOverlay.classList.toggle('opacity-0');
-    }
-
-    // --- Desktop Sidebar Toggle ---
-    // This function correctly swaps the icon and re-renders Lucide
-    function toggleSidebarCollapse() {
-        const appScreen = document.getElementById('app-screen');
-        const collapseIcon = document.querySelector('#collapse-btn i');
-        
-        // Toggle the class on the main app screen
-        const isCollapsed = appScreen.classList.toggle('sidebar-collapsed');
-        
-        // Update the icon to reflect the new state
-        if (collapseIcon) {
-            collapseIcon.setAttribute('data-lucide', isCollapsed ? 'chevrons-right' : 'chevrons-left');
-            lucide.createIcons(); // Re-render the icon
-        }
-    }
-
-
-    // --- Renders the Main Application Shell (Sidebar, Header, User Profile) ---
-    function renderAppShell(user) {
-        const isAdmin = user.email === ADMIN_EMAIL; 
-
-        toolNav.innerHTML = Object.keys(tools).map(key => {
-            if ((key === 'analytics') && !isAdmin) {
-                return ''; 
-            }
-            const tool = tools[key];
-            return `<a href="#" data-tool="${key}" class="nav-item mb-1">
-                        <i data-lucide="${tool.icon || 'file-text'}"></i>
-                        <span class="nav-item-text">${tool.name}</span>
-                    </a>`;
-        }).join('');
-
-        userProfileContainer.innerHTML = `
-            <button id="collapse-btn" class="nav-item mb-1 w-full lg:flex"></button>
-
-            <div class="border-t border-border pt-2">
-                 <div id="user-profile-card" class="flex items-center p-2 rounded-lg transition-all duration-300 ease-in-out cursor-pointer hover:bg-white/5">
-                    <img id="user-avatar" src="${user.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.displayName)}&background=161B22&color=C9D1D9`}" alt="User Avatar" class="w-9 h-9 rounded-full object-cover border-2 border-border shrink-0" />
-                    <div id="user-profile-info" class="ml-3 flex-1 min-w-0 nav-item-text">
-                        <p class="text-sm font-semibold truncate text-text-primary" title="${user.displayName}">${user.displayName}</p>
-                        <p class="text-xs text-text-secondary truncate"title="${user.email}">${user.email}</p>
-                    </div>
-                    <button id="logout-button" class="w-9 mt-1 text-center flex items-center p-2 rounded-md text-text-secondary hover:bg-error/10 hover:text-error transition-colors">
-                    <i data-lucide="log-out" class="w-5 h-5 mr-0 pl-"></i>
-                </button>
-                </div>
-                
-
-                <div class="border-t border-border mt-2 pt-2">
-                    <div class="flex items-center justify-between p-2">
-                        <div class="flex items-center nav-item-text">
-                            <i data-lucide="sun" class="w-5 h-5 mr-3 text-text-secondary"></i>
-                            <span class="text-sm text-text-secondary">Light Mode</span>
-                        </div>
-                        <label for="theme-toggle" class="relative inline-flex items-center cursor-pointer">
-                            <input type="checkbox" value="" id="theme-toggle" class="sr-only peer">
-                            <div class="w-11 h-6 bg-border rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
-                        </label>
-                    </div>
-                </div>
-            </div>`;
-        
-        mainHeader.innerHTML = `
-            <button id="menu-toggle-btn" class="lg:hidden p-2 -ml-2 text-text-secondary hover:text-text-primary">
-                <i data-lucide="menu" class="w-6 h-6"></i>
-            </button>
-            <div id="header-content" class="flex-1">
-                <!-- Tool-specific header content will be injected by loadTool -->
-            </div>
-        `;
-
-        // Attach listeners after rendering
-        document.getElementById('logout-button').addEventListener('click', () => {
-             logActivity(user, "User Logged Out"); 
-             signOut(auth);
-        });
-
-        document.getElementById('user-profile-card').addEventListener('click', () => {
-            loadTool('profile', user);
-        });
-
-        document.getElementById('menu-toggle-btn').addEventListener('click', toggleSidebar);
-        sidebarOverlay.addEventListener('click', toggleSidebar);
-        
-        // Attach listener for collapse button
-        document.getElementById('collapse-btn').addEventListener('click', toggleSidebarCollapse);
-
-        // --- Theme Toggle Logic ---
-        const themeToggle = document.getElementById('theme-toggle');
-        const themeIcon = themeToggle.closest('.flex').querySelector('i');
-
-        const applyTheme = (theme) => {
-            if (theme === 'dark') {
-                document.documentElement.classList.add('dark');
-                themeToggle.checked = false;
-                themeIcon.setAttribute('data-lucide', 'moon');
-            } else {
-                document.documentElement.classList.remove('dark');
-                themeToggle.checked = true;
-                themeIcon.setAttribute('data-lucide', 'sun');
-            }
-            lucide.createIcons();
-        };
-
-        // Check for saved theme
-        const savedTheme = localStorage.getItem('theme') || 'dark'; // Default to dark
-        applyTheme(savedTheme);
-
-        themeToggle.addEventListener('change', () => {
-            const newTheme = themeToggle.checked ? 'light' : 'dark';
-            localStorage.setItem('theme', newTheme);
-            applyTheme(newTheme);
-            logActivity(user, `Theme changed to ${newTheme}`);
-        });
-
-
-        toolNav.addEventListener('click', e => {
-            const link = e.target.closest('a[data-tool]');
-            if (link) {
-                e.preventDefault(); 
-                loadTool(link.dataset.tool, user); 
-                if (window.innerWidth < 1024) {
-                    toggleSidebar();
-                }
-            }
-        });
-
-        lucide.createIcons();
-    }
-
-    // --- Loads and Renders a Specific Tool ---
-    function loadTool(toolKey, user) {
-        const isAdmin = user.email === ADMIN_EMAIL;
-        const headerContent = document.getElementById('header-content');
-
-        if ((toolKey === 'analytics') && !isAdmin) {
-            console.warn(`Unauthorized attempt by ${user.email} to access admin tool: ${toolKey}. Redirecting to dashboard.`);
-            loadTool('dashboard', user); 
-            return; 
-        }
-
-        if (!tools[toolKey]) {
-            console.error(`Tool not found: ${toolKey}. Loading dashboard instead.`);
-            loadTool('dashboard', user); 
-            return; 
-        }
-
-        const tool = tools[toolKey];
-        if (headerContent) {
-            headerContent.innerHTML = `<h1 class="text-xl md:text-2xl font-bold text-text-primary ml-2 lg:ml-0">${tool.name}</h1>`;
+    onAuthStateChanged(auth, (user) => {
+        if (user && WHITELISTED_EMAILS.includes(user.email)) {
+            currentUser = user;
+            clearTerminal();
+            printToTerminal(`Welcome, ${user.displayName}.`);
+            printToTerminal('Type "help" for a list of available commands.');
+            logActivity(user, "User Logged In (CLI)");
         } else {
-            mainHeader.innerHTML = `<h1 class="text-xl md:text-2xl font-bold text-text-primary">${tool.name}</h1>`;
-        }
-
-        try {
-            const rendered = tool.render(user, { db, logActivity }); 
-            renderView(mainContent, rendered.html); 
-
-            if (tool.onMount && typeof tool.onMount === 'function') {
-                tool.onMount(mainContent, user, { db, logActivity });
+            currentUser = null;
+            clearTerminal();
+            printToTerminal('GO-PC Terminal Interface');
+            printToTerminal('Type "login" to authenticate with your Google account.');
+            if (user) {
+                signOut(auth).catch(console.error);
             }
-
-            document.querySelectorAll('#tool-nav a').forEach(a => {
-                a.classList.remove('active'); 
-                if (a.dataset.tool === toolKey) {
-                    a.classList.add('active'); 
-                }
-            });
-
-            lucide.createIcons();
-
-        } catch (error) {
-             console.error(`Error rendering or mounting tool "${toolKey}":`, error);
-             mainContent.innerHTML = `<div class="bg-error/10 text-error p-4 rounded-lg"><strong>Error:</strong> Could not load tool "${tool.name}". Please check the console for details.</div>`;
-             logActivity(user, `Error loading tool: ${tool.name}`);
         }
-    }
+    });
 
-    setTimeout(() => {
-        if (loadingScreen.style.opacity !== '0') { 
-            showPage(auth.currentUser ? 'app-screen' : 'auth-screen');
+    commandInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            const command = commandInput.value;
+            commandInput.value = '';
+            handleCommand(command);
+        } else if (e.key === 'ArrowUp') {
+            if (commandHistory.length > 0) {
+                historyIndex = Math.min(historyIndex + 1, commandHistory.length - 1);
+                commandInput.value = commandHistory[historyIndex];
+            }
+        } else if (e.key === 'ArrowDown') {
+            if (historyIndex > 0) {
+                historyIndex--;
+                commandInput.value = commandHistory[historyIndex];
+            } else {
+                historyIndex = -1;
+                commandInput.value = '';
+            }
         }
-    }, 1500); 
-
-}); // End DOMContentLoaded
+    });
+});
