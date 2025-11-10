@@ -77,15 +77,23 @@ async function runCVSorter(user, { logActivity }, args) {
 function parseArgs(args) {
     const options = {};
     const keys = [];
-    for (let i = 0; i < args.length; i++) {
+    let i = 0;
+    while (i < args.length) {
         if (args[i].startsWith('--')) {
             const key = args[i].substring(2);
             const value = (i + 1 < args.length && !args[i + 1].startsWith('--')) ? args[i + 1] : true;
             options[key] = value;
             if (value !== true) i++;
         } else {
-            keys.push(args[i]);
+            // Check if the next argument is 'A', 'B', or 'C'
+            if (i + 1 < args.length && ['A', 'B', 'C'].includes(args[i + 1].toUpperCase())) {
+                keys.push(`${args[i]} ${args[i + 1]}`);
+                i++;
+            } else {
+                keys.push(args[i]);
+            }
         }
+        i++;
     }
     return { options, keys };
 }

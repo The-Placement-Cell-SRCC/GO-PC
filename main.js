@@ -113,14 +113,63 @@ document.addEventListener('DOMContentLoaded', () => {
             case 'clear':
                 clearTerminal();
                 break;
+            case 'matrix':
+                const matrixContainer = document.createElement('canvas');
+                matrixContainer.id = 'matrix-canvas';
+                matrixContainer.style.position = 'fixed';
+                matrixContainer.style.top = '0';
+                matrixContainer.style.left = '0';
+                matrixContainer.style.width = '100%';
+                matrixContainer.style.height = '100%';
+                matrixContainer.style.zIndex = '-1';
+                document.body.appendChild(matrixContainer);
+
+                const canvas = matrixContainer;
+                const ctx = canvas.getContext('2d');
+
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+
+                const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890';
+                const fontSize = 18;
+                const columns = canvas.width / fontSize;
+                const drops = Array(Math.floor(columns)).fill(1);
+
+                function drawMatrix() {
+                    ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    ctx.fillStyle = '#0F0';
+                    ctx.font = `${fontSize}px monospace`;
+
+                    for (let i = 0; i < drops.length; i++) {
+                        const text = letters[Math.floor(Math.random() * letters.length)];
+                        ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+                        if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
+                            drops[i] = 0;
+                        }
+                        drops[i]++;
+                    }
+                }
+
+                const matrixInterval = setInterval(drawMatrix, 33);
+
+                // Stop after a while or on keypress
+                const stopMatrix = () => {
+                    clearInterval(matrixInterval);
+                    document.body.removeChild(matrixContainer);
+                    document.removeEventListener('keydown', stopMatrix);
+                };
+                document.addEventListener('keydown', stopMatrix);
+                setTimeout(stopMatrix, 30000); // Stop after 30 seconds
+                break;
             default:
                 if (tools[cmd]) {
                     const tool = tools[cmd];
                     try {
-                        const output = tool.render(currentUser, { db, logActivity });
+                        const output = tool.render(currentUser, { db, logActivity }, args);
                         printToTerminal(output.text); // We'll refactor tools to return text
                         if (tool.onMount) {
-                            tool.onMount(terminal, currentUser, { db, logActivity });
+                            tool.onMount(terminal, currentUser, { db, logActivity }, args);
                         }
                     } catch (error) {
                         printToTerminal(`Error executing tool "${cmd}": ${error.message}`);
@@ -146,17 +195,30 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
+    const showWelcomeMessage = () => {
+        clearTerminal();
+        const asciiArt = `
+  ██████╗  ██████╗ ██████╗      ██████╗  ██████╗
+ ██╔════╝ ██╔═══██╗██╔══██╗    ██╔═══██╗██╔════╝
+ ██║  ███╗██║   ██║██████╔╝    ██║   ██║██║
+ ██║   ██║██║   ██║██╔═══╝     ██║   ██║██║
+ ╚██████╔╝╚██████╔╝██║         ╚██████╔╝╚██████╗
+  ╚═════╝  ╚═════╝ ╚═╝          ╚═════╝  ╚═════╝
+        `;
+        printToTerminal(asciiArt);
+        printToTerminal('Welcome to the GO-PC Terminal Interface.');
+        printToTerminal('Type "help" for a list of available commands.');
+    };
+
     onAuthStateChanged(auth, (user) => {
         if (user && WHITELISTED_EMAILS.includes(user.email)) {
             currentUser = user;
-            clearTerminal();
-            printToTerminal(`Welcome, ${user.displayName}.`);
-            printToTerminal('Type "help" for a list of available commands.');
+            showWelcomeMessage();
+            printToTerminal(`Logged in as: ${user.displayName}.`);
             logActivity(user, "User Logged In (CLI)");
         } else {
             currentUser = null;
-            clearTerminal();
-            printToTerminal('GO-PC Terminal Interface');
+            showWelcomeMessage();
             printToTerminal('Type "login" to authenticate with your Google account.');
             if (user) {
                 signOut(auth).catch(console.error);
