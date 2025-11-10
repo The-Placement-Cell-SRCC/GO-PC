@@ -121,8 +121,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 matrixContainer.style.left = '0';
                 matrixContainer.style.width = '100%';
                 matrixContainer.style.height = '100%';
-                matrixContainer.style.zIndex = '-1';
+                matrixContainer.style.zIndex = '10';
                 document.body.appendChild(matrixContainer);
+                const originalBackgroundColor = document.body.style.backgroundColor;
+                document.body.style.backgroundColor = 'transparent';
 
                 const canvas = matrixContainer;
                 const ctx = canvas.getContext('2d');
@@ -157,6 +159,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const stopMatrix = () => {
                     clearInterval(matrixInterval);
                     document.body.removeChild(matrixContainer);
+                    document.body.style.backgroundColor = originalBackgroundColor;
                     document.removeEventListener('keydown', stopMatrix);
                 };
                 document.addEventListener('keydown', stopMatrix);
