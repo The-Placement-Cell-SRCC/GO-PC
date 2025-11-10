@@ -74,7 +74,10 @@ textarea.input-field {
     @apply bg-primary font-semibold text-white;
 }
 .nav-item .lucide {
-    @apply w-5 h-5 mr-3 shrink-0 transition-all duration-300 ease-in-out -mt-px;
+    @apply w-5 h-5 mr-3 shrink-0 transition-all duration-300 ease-in-out;
+}
+.input-checkbox {
+    @apply h-5 w-5 rounded border-border bg-background text-primary focus:ring-primary focus:ring-offset-surface;
 }
 .nav-item-text {
     @apply whitespace-nowrap transition-opacity duration-300 ease-in-out;
