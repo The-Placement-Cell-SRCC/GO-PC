@@ -201,15 +201,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const showWelcomeMessage = () => {
         clearTerminal();
         const asciiArt = `
-  ██████╗  ██████╗ ██████╗      ██████╗  ██████╗
- ██╔════╝ ██╔═══██╗██╔══██╗    ██╔═══██╗██╔════╝
- ██║  ███╗██║   ██║██████╔╝    ██║   ██║██║
- ██║   ██║██║   ██║██╔═══╝     ██║   ██║██║
- ╚██████╔╝╚██████╔╝██║         ╚██████╔╝╚██████╗
-  ╚═════╝  ╚═════╝ ╚═╝          ╚═════╝  ╚═════╝
+  ██████╗  ██████╗        ██████╗  ██████╗
+ ██╔════╝ ██╔═══██╗       ██╔══██╗██╔════╝
+ ██║  ███╗██║   ██║  ███  ██████╔╝██║
+ ██║   ██║██║   ██║       ██╔═══╝ ██║
+ ╚██████╔╝╚██████╔╝       ██║     ╚██████╗
+  ╚═════╝  ╚═════╝        ╚═╝      ╚═════╝
         `;
         printToTerminal(asciiArt);
-        printToTerminal('Welcome to the GO-PC Terminal Interface.');
+        printToTerminal('Welcome to the GO-PC CLI.');
         printToTerminal('Type "help" for a list of available commands.');
     };
 
