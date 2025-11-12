@@ -4,127 +4,20 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GO-PC || The Placement Cell, SRCC - BETA</title>
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Google Font -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Raleway:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
     <!-- Custom CSS -->
-    <link rel="stylesheet" href="/style.css">
-    <style>
-        :root {
-            --color-background: hsl(220, 30%, 96%); /* Light mode background */
-            --color-surface: hsl(0, 0%, 100%);     /* Light mode surface */
-            --color-border: hsl(220, 20%, 90%);      /* Light mode border */
-            --color-text-primary: hsl(220, 25%, 20%);/* Light mode text primary */
-            --color-text-secondary: hsl(220, 15%, 45%);/* Light mode text secondary */
-        }
-        html.dark {
-            --color-background: hsl(222, 25%, 8%);    /* Dark mode background */
-            --color-surface: hsl(220, 23%, 12%);   /* Dark mode surface */
-            --color-border: hsl(216, 15%, 22%);    /* Dark mode border */
-            --color-text-primary: hsl(215, 15%, 85%);  /* Dark mode text primary */
-            --color-text-secondary: hsl(213, 10%, 60%);/* Dark mode text secondary */
-        }
-    </style>
+    <link rel="stylesheet" href="/terminal-v1.css">
     <!-- Favicon -->
-<link rel="icon" type="image/png" href="/media/logo.png">
-    
-    <!-- 
-      NEW TAILWIND CONFIG
-      This is the core of the new UI style.
-      It updates the color palette to match the modern, blue-themed design.
-    -->
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    fontFamily: {
-                        sans: ['Raleway', 'sans-serif'],
-                    },
-                    colors: {
-                        'primary': 'hsl(210, 90%, 55%)',       // #2F81F7
-                        'primary-dark': 'hsl(210, 90%, 45%)',
-
-                        'success': 'hsl(138, 55%, 45%)',      // #2EA043
-                        'warning': 'hsl(36, 90%, 50%)',       // #F59E0B
-                        'error': 'hsl(2, 93%, 63%)',         // #F85149
-
-                        // Using CSS variables for themeable colors
-                        'background': 'var(--color-background)',
-                        'surface': 'var(--color-surface)',
-                        'border': 'var(--color-border)',
-                        'text-primary': 'var(--color-text-primary)',
-                        'text-secondary': 'var(--color-text-secondary)',
-                    }
-                }
-            }
-        }
-    </script>
+    <link rel="icon" type="image/png" href="/media/logo.png">
 </head>
-<body class="bg-background text-text-primary font-sans antialiased overflow-hidden">
-
-    <!-- Loading Screen (No change) -->
-    <div id="loading-screen" class="fixed inset-0 bg-surface/80 backdrop-blur-sm flex flex-col items-center justify-center z-50 transition-opacity duration-300 ease-out">
-        <div class="loader"></div>
-        <p class="mt-4 text-text-secondary">Initialising GO-PC...</p>
-    </div>
-
-    <!-- Auth Screen (Shell for login) -->
-    <div id="auth-screen" class="hidden">
-        <!-- Auth shell will be injected by main.js -->
-    </div>
-
-    <!-- App Screen (Main UI) -->
-    <!-- 'sidebar-collapsed' class will be toggled on this element by main.js -->
-    <div id="app-screen" class="hidden h-screen flex">
-        
-        <!-- Sidebar -->
-        <aside id="sidebar" class="fixed inset-y-0 left-0 bg-surface flex flex-col p-4 flex-shrink-0 z-30
-                     transition-all duration-300 ease-in-out
-                     w-[260px] lg:w-[260px] 
-                     transform -translate-x-full lg:translate-x-0"> 
-            
-             <!-- Logo and Title -->
-             <div class="flex items-center gap-3 px-3 py-2 mb-6 h-12">
-   <img class="w-9 h-9 bg-surface rounded-lg p-1" src="/media/logo.png" alt="GO-PC Logo">
-                <span id="logo-text" class="nav-item-text text-xl font-bold text-text-primary whitespace-nowrap">GO-PC</span>
-            </div>
-
-            <!-- Navigation (Content injected by JS) -->
-            <nav id="tool-nav" class="flex-grow space-y-1 overflow-y-auto">
-                <!-- Nav items will be rendered here -->
-            </nav>
-
-            <!-- User Profile (Content injected by JS, pushed to bottom) -->
-            <div id="user-profile-container" class="mt-auto flex-shrink-0 space-y-2"> 
-                <!-- Sidebar collapse button injected here -->
-                <!-- User profile will be rendered here -->
-            </div>
-        </aside>
-
-        <!-- Sidebar Overlay (for mobile) -->
-        <div id="sidebar-overlay" class="fixed inset-0 bg-black/50 z-20 hidden lg:hidden transition-opacity duration-300 ease-in-out opacity-0"></div>
-
-        <!-- Main Content Area -->
-        <main id="main-content-wrapper" class="flex-1 flex flex-col overflow-hidden 
-                         transition-all duration-300 ease-in-out 
-                         lg:pl-[260px]">
-            
-            <!-- Header (Content injected by JS) -->
-            <header id="main-header" class="bg-background/90 backdrop-blur-sm z-10 p-4 md:p-6 border-b border-border flex-shrink-0 flex items-center h-16"> 
-                <!-- Mobile Menu Button & Header content injected by JS -->
-            </header>
-
-            <!-- Scrollable Tool Content Area -->
-            <div id="main-content" class="flex-1 overflow-y-auto p-4 md:p-8">
-                <!-- Tool content will be rendered here -->
-            </div>
-        </main>
+<body>
+    <div id="terminal-container">
+        <pre id="terminal"></pre>
+        <div id="input-line">
+            <span id="prompt">&gt;</span>
+            <input type="text" id="command-input" autofocus />
+        </div>
     </div>
 
     <!-- Main JavaScript Module -->
